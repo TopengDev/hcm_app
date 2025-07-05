@@ -11,7 +11,6 @@ import {
    text,
    numeric,
 } from 'drizzle-orm/pg-core';
-import { sql } from 'drizzle-orm';
 
 export const schedules = pgTable(
    'schedules',
@@ -25,8 +24,8 @@ export const schedules = pgTable(
       isRecurring: boolean('is_recurring'),
       validFrom: date('valid_from').notNull(),
       validTo: date('valid_to'),
-      createdAt: timestamp('created_at', { mode: 'string' }),
-      updatedAt: timestamp('updated_at', { mode: 'string' }),
+      createdAt: timestamp('created_at', { mode: 'date' }).defaultNow(),
+      updatedAt: timestamp('updated_at', { mode: 'date' }).defaultNow(),
    },
    (table) => [
       foreignKey({
@@ -44,17 +43,17 @@ export const doctors = pgTable('doctors', {
    education: text(),
    experienceYears: integer('experience_years'),
    isAvailable: boolean('is_available'),
-   createdAt: timestamp('created_at', { mode: 'string' }),
-   updatedAt: timestamp('updated_at', { mode: 'string' }),
+   createdAt: timestamp('created_at', { mode: 'date' }).defaultNow(),
+   updatedAt: timestamp('updated_at', { mode: 'date' }).defaultNow(),
 
    name: varchar({ length: 100 }).notNull(),
-   phoneNumber: varchar('phone_number', { length: 20 }),
-   email: varchar({ length: 64 }),
+   phoneNumber: varchar('phone_number', { length: 20 }).unique(),
+   email: varchar({ length: 64 }).unique(),
    address: varchar({ length: 240 }),
    gender: varchar({ length: 6 }),
    birthDate: date('birth_date').notNull(),
    profession: varchar({ length: 64 }),
-   idCard: varchar('id_card', { length: 80 }),
+   idCard: varchar('id_card', { length: 80 }).unique(),
    password: varchar({ length: 255 }),
 });
 
@@ -62,17 +61,17 @@ export const nurses = pgTable('nurses', {
    nurseId: serial('nurse_id').notNull().primaryKey(),
    department: varchar({ length: 100 }),
    position: varchar({ length: 100 }),
-   createdAt: timestamp('created_at', { mode: 'string' }),
-   updatedAt: timestamp('updated_at', { mode: 'string' }),
+   createdAt: timestamp('created_at', { mode: 'date' }).defaultNow(),
+   updatedAt: timestamp('updated_at', { mode: 'date' }).defaultNow(),
 
    name: varchar({ length: 100 }).notNull(),
-   phoneNumber: varchar('phone_number', { length: 20 }),
-   email: varchar({ length: 64 }),
+   phoneNumber: varchar('phone_number', { length: 20 }).unique(),
+   email: varchar({ length: 64 }).unique(),
    address: varchar({ length: 240 }),
    gender: varchar({ length: 6 }),
    birthDate: date('birth_date').notNull(),
    profession: varchar({ length: 64 }),
-   idCard: varchar('id_card', { length: 80 }),
+   idCard: varchar('id_card', { length: 80 }).unique(),
    password: varchar({ length: 255 }),
 });
 
@@ -82,17 +81,17 @@ export const patients = pgTable('patients', {
    allergies: text(),
    heightCm: integer('height_cm'),
    weightKg: numeric('weight_kg', { precision: 5, scale: 2 }),
-   createdAt: timestamp('created_at', { mode: 'string' }),
-   updatedAt: timestamp('updated_at', { mode: 'string' }),
+   createdAt: timestamp('created_at', { mode: 'date' }).defaultNow(),
+   updatedAt: timestamp('updated_at', { mode: 'date' }).defaultNow(),
 
    name: varchar({ length: 100 }).notNull(),
-   phoneNumber: varchar('phone_number', { length: 20 }),
-   email: varchar({ length: 64 }),
+   phoneNumber: varchar('phone_number', { length: 20 }).unique(),
+   email: varchar({ length: 64 }).unique(),
    address: varchar({ length: 240 }),
    gender: varchar({ length: 6 }),
    birthDate: date('birth_date').notNull(),
    profession: varchar({ length: 64 }),
-   idCard: varchar('id_card', { length: 80 }),
+   idCard: varchar('id_card', { length: 80 }).unique(),
    password: varchar({ length: 255 }),
 });
 
@@ -107,8 +106,8 @@ export const appointments = pgTable(
       endTime: time('end_time'),
       status: varchar({ length: 20 }).notNull(),
       complaint: text(),
-      createdAt: timestamp('created_at', { mode: 'string' }),
-      updatedAt: timestamp('updated_at', { mode: 'string' }),
+      createdAt: timestamp('created_at', { mode: 'date' }).defaultNow(),
+      updatedAt: timestamp('updated_at', { mode: 'date' }).defaultNow(),
    },
    (table) => [
       foreignKey({
@@ -136,8 +135,8 @@ export const medicalRecords = pgTable(
       notes: text(),
       paymentStatus: varchar('payment_status', { length: 20 }),
       totalFee: numeric('total_fee', { precision: 10, scale: 2 }),
-      createdAt: timestamp('created_at', { mode: 'string' }),
-      updatedAt: timestamp('updated_at', { mode: 'string' }),
+      createdAt: timestamp('created_at', { mode: 'date' }).defaultNow(),
+      updatedAt: timestamp('updated_at', { mode: 'date' }).defaultNow(),
    },
    (table) => [
       foreignKey({
@@ -163,7 +162,7 @@ export const recipes = pgTable(
       frequency: varchar({ length: 100 }).notNull(),
       duration: varchar({ length: 50 }).notNull(),
       instructions: text(),
-      createdAt: timestamp('created_at', { mode: 'string' }),
+      createdAt: timestamp('created_at', { mode: 'date' }).defaultNow(),
    },
    (table) => [
       foreignKey({
