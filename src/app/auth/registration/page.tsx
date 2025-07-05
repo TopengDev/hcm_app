@@ -9,6 +9,7 @@ import {
    CardTitle,
 } from '@/components/ui/card';
 import Image from 'next/image';
+import Link from 'next/link';
 
 export default function Page() {
    return (
@@ -19,7 +20,7 @@ export default function Page() {
             </h1>
          </div>
          <div className="flex items-center justify-center gap-8 w-full flex-wrap">
-            <a
+            <Link
                href="/auth/registration/patient"
                className="w-full max-w-sm hover:cursor-pointer hover:scale-110 transition-all duration-150"
             >
@@ -35,8 +36,8 @@ export default function Page() {
                      <Image src="/user.png" width={160} height={160} alt="" />
                   </CardContent>
                </Card>
-            </a>
-            <a
+            </Link>
+            <Link
                href="/auth/registration/nurse"
                className="w-full max-w-sm hover:cursor-pointer hover:scale-110 transition-all duration-150"
             >
@@ -51,8 +52,8 @@ export default function Page() {
                      <Image src="/admin.png" width={160} height={160} alt="" />
                   </CardContent>
                </Card>
-            </a>
-            <a
+            </Link>
+            <Link
                href="/auth/registration/doctor"
                className="w-full max-w-sm hover:cursor-pointer hover:scale-110 transition-all duration-150"
             >
@@ -67,7 +68,7 @@ export default function Page() {
                      <Image src="/doctor.png" width={160} height={160} alt="" />
                   </CardContent>
                </Card>
-            </a>
+            </Link>
          </div>
       </div>
    );

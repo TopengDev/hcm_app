@@ -1,11 +1,13 @@
+'use client';
 import React from 'react';
 import Form from '@/components/custom/form';
 import { registerDoctor } from '@/services/doctors.service';
 import { formFields } from './form';
 import { useRouter } from 'next/navigation';
 import { toast } from 'react-toastify';
+import Link from 'next/link';
 
-async function Page() {
+function Page() {
    const router = useRouter();
 
    async function onSubmit(formData: FormData) {
@@ -36,12 +38,12 @@ async function Page() {
             />
             <div className=" w-full flex items-center justify-center gap-2 my-4 text-slate-400">
                <p>Already have an ccount?</p>
-               <a
+               <Link
                   href="/auth/signin"
                   className="text-slate-500 hover:text-slate-700"
                >
                   Sign In
-               </a>
+               </Link>
             </div>
          </div>
       </div>

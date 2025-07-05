@@ -4,8 +4,11 @@ import Form, { TFormProps } from '@/components/custom/form';
 import { formFields } from './form';
 import { signIn } from '@/services/auth.service';
 import { toast } from 'react-toastify';
+import Link from 'next/link';
+import { useRouter } from 'next/navigation';
 
 function Page() {
+   const router = useRouter();
    async function onSubmit(formData: FormData) {
       try {
          const response = await signIn(formData);
@@ -14,6 +17,7 @@ function Page() {
             toast.info(response.msg);
          }
 
+         router.replace(`/dashboard/${response.data?.type}`);
          return response;
       } catch (error: any) {
          toast.error(error.toString());
@@ -32,12 +36,12 @@ function Page() {
             />
             <div className=" w-full flex items-center justify-center gap-2 my-4 text-slate-400">
                <p>Don't hace an account?</p>
-               <a
+               <Link
                   href="/auth/registration"
                   className="text-slate-500 hover:text-slate-700"
                >
                   Register
-               </a>
+               </Link>
             </div>
          </div>
       </div>

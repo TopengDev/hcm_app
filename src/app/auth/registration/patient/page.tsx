@@ -7,6 +7,7 @@ import { formFields } from './form';
 import { toast } from 'react-toastify';
 import GlobalProvider from '@/app/globalProvider';
 import { useRouter } from 'next/navigation';
+import Link from 'next/link';
 
 function PageComponent() {
    const router = useRouter();
@@ -40,12 +41,12 @@ function PageComponent() {
 
             <div className="w-full flex items-center justify-center gap-2 my-4 text-slate-400">
                <p>Already have an ccount?</p>
-               <a
+               <Link
                   href="/auth/signin"
                   className="text-slate-500 hover:text-slate-700"
                >
                   Sign In
-               </a>
+               </Link>
             </div>
          </div>
       </div>
