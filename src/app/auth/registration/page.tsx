@@ -12,13 +12,13 @@ import Image from 'next/image';
 
 export default function Page() {
    return (
-      <div className="w-screen h-screen flex flex-col items-center justify-center">
-         <div className="mb-16">
-            <h1 className="text-2xl font-bold">
+      <div className="w-screen h-full lg:h-screen flex flex-col items-center justify-center overflow-y-scroll">
+         <div className="my-16">
+            <h1 className="text-lg xl:text-xl 2xl:text-2xl font-bold">
                Choose your preferred account type
             </h1>
          </div>
-         <div className="flex items-center justify-center gap-8 w-full">
+         <div className="flex items-center justify-center gap-8 w-full flex-wrap">
             <a
                href="/auth/registration/patient"
                className="w-full max-w-sm hover:cursor-pointer hover:scale-110 transition-all duration-150"

@@ -21,8 +21,8 @@ function Page() {
    }
 
    return (
-      <div className="w-screen h-screen flex items-center justify-center">
-         <div className="w-full sm:w-xs md:w-sm lg:w-md xl:w-lg 2xl:w-xl">
+      <div className="w-screen h-screen flex items-center justify-center overflow-y-scroll">
+         <div className="w-full sm:w-md md:w-lg lg:w-xl xl:w-2xl 2xl:w-3xl">
             <Form
                title="Sign in to your account"
                description="Please input your credentials"
@@ -30,7 +30,7 @@ function Page() {
                fields={formFields}
                actionCallback={onSubmit}
             />
-            <div className="max-w-lg w-full flex items-center justify-center gap-2 my-4 text-slate-400">
+            <div className=" w-full flex items-center justify-center gap-2 my-4 text-slate-400">
                <p>Don't hace an account?</p>
                <a
                   href="/auth/registration"

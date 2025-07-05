@@ -28,8 +28,8 @@ function PageComponent() {
    }
 
    return (
-      <div className="w-screen h-screen flex items-center justify-center">
-         <div className="w-full sm:w-xs md:w-sm lg:w-md xl:w-lg 2xl:w-xl">
+      <div className="w-screen h-screen flex items-center justify-center overflow-y-scroll">
+         <div className="w-full sm:w-md md:w-lg lg:w-xl xl:w-2xl 2xl:w-3xl">
             <Form
                title="Patient Registration"
                description="Please fill in the form below"
@@ -38,7 +38,7 @@ function PageComponent() {
                actionCallback={onSubmit}
             />
 
-            <div className="max-w-lg w-full flex items-center justify-center gap-2 my-4 text-slate-400">
+            <div className="w-full flex items-center justify-center gap-2 my-4 text-slate-400">
                <p>Already have an ccount?</p>
                <a
                   href="/auth/signin"
