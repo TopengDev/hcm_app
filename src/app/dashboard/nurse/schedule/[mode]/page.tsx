@@ -53,7 +53,6 @@ function Page() {
          const response = await deleteSchedule(searchParams.get('id') || '');
 
          if (!response?.success) {
-            console.log({ response });
             toast.info(response?.msg);
          } else {
             router.push('/dashboard/nurse/schedule');

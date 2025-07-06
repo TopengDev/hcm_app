@@ -101,8 +101,6 @@ function Page() {
       if (doctorId) payload.append('doctorId', doctorId);
       const response = (await getAllSchedules(payload))?.data || [];
       const result: any = (response || [])?.[response.length - 1]?.schedules;
-      console.log({ doctorId });
-      console.log({ response });
       setSchedules(result);
       return true;
    }
@@ -113,7 +111,6 @@ function Page() {
       payload.append('search', search);
       const response = (await getAllSchedules(payload))?.data || [];
       const result = response || [];
-      console.log({ result });
       setSchedulesTable(result);
    }
    const [formReady, setFormReady] = useState(false);
