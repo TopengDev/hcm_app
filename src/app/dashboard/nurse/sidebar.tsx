@@ -17,17 +17,17 @@ import Link from 'next/link';
 const items = [
    {
       title: 'Kunjungan',
-      url: '#',
+      url: '/dashboard/nurse/visits',
       icon: BookCheckIcon,
    },
    {
       title: 'Pasien',
-      url: '#',
+      url: '/dashboard/nurse/patient',
       icon: Bed,
    },
    {
       title: 'Jadwal',
-      url: '#',
+      url: '/dashboard/nurse/schedules',
       icon: Calendar,
    },
 ];

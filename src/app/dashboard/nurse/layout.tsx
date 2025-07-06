@@ -15,7 +15,7 @@ export default function Layout({ children }: { children: React.ReactNode }) {
                      day: 'numeric',
                      month: 'long',
                      year: 'numeric',
-                     timeZone: 'UTC', // optional, depending on your context
+                     timeZone: 'UTC',
                   })}
                </div>
             </div>

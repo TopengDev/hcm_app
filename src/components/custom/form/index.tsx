@@ -17,7 +17,7 @@ import {
 import { Button } from '@/components/ui/button';
 import { Label } from '@/components/ui/label';
 import { Input } from '@/components/ui/input';
-import React, { useRef } from 'react';
+import React, { useEffect, useRef } from 'react';
 import { useFormStatus } from 'react-dom';
 
 type TFormField = {
@@ -43,11 +43,29 @@ export type TFormProps = {
       | TFormField
    )[];
    actionCallback?: (props?: any) => any;
+   initialValues?: object;
 };
 
 export default function Form(props: TFormProps) {
    const formRef = useRef<HTMLFormElement>(null);
    const { pending } = useFormStatus();
+
+   useEffect(() => {
+      if (formRef.current && props.initialValues) {
+         for (const [key, value] of Object.entries(props.initialValues)) {
+            let input = formRef.current.elements.namedItem(
+               key,
+            ) as HTMLInputElement;
+            if (!input) {
+               input = document.createElement('input');
+               input.type = 'hidden';
+               input.name = key;
+               formRef.current.appendChild(input);
+            }
+            input.value = value;
+         }
+      }
+   }, [props.initialValues]);
 
    return (
       <Card className="w-full h-full">
@@ -74,7 +92,7 @@ export default function Form(props: TFormProps) {
                            <div className="w-full flex items-center gap-4">
                               {field.fields.map((field, j) => (
                                  <div
-                                    className="flex flex-col gap-2"
+                                    className="w-full flex flex-col gap-2"
                                     key={`form-field-${i}-${j}`}
                                  >
                                     {field.label && (
@@ -109,7 +127,7 @@ export default function Form(props: TFormProps) {
                               ))}
                            </div>
                         ) : (
-                           <div className="flex flex-col gap-2">
+                           <div className="w-full flex flex-col gap-2">
                               {field.label && (
                                  <Label htmlFor={field.inputProps.name || ''}>
                                     {field.label}
@@ -140,7 +158,11 @@ export default function Form(props: TFormProps) {
                   ))}
                </div>
                <div className="h-8" />
-               <Button type="submit" className="w-full" disabled={pending}>
+               <Button
+                  type="submit"
+                  className="w-full hover:cursor-pointer"
+                  disabled={pending}
+               >
                   {props.submitButtonCaption
                      ? props.submitButtonCaption
                      : 'Submit'}
