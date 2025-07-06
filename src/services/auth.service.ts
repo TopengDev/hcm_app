@@ -3,7 +3,7 @@
 import { db } from '@/db/db';
 import { cookies } from 'next/headers';
 import { sign, verify } from 'jsonwebtoken';
-import { patients } from '@/db/schema';
+import { redirect } from 'next/navigation';
 
 export async function signIn(payload: FormData) {
    const cookieStore = await cookies();
@@ -37,6 +37,12 @@ export async function signIn(payload: FormData) {
                   httpOnly: true,
                   path: '/',
                });
+               cookieStore.set({
+                  name: 'role',
+                  value: 'patient',
+                  httpOnly: true,
+                  path: '/',
+               });
             }
             break;
          case 'nurse':
@@ -60,6 +66,12 @@ export async function signIn(payload: FormData) {
                   httpOnly: true,
                   path: '/',
                });
+               cookieStore.set({
+                  name: 'role',
+                  value: 'nurse',
+                  httpOnly: true,
+                  path: '/',
+               });
             }
             break;
          case 'doctor':
@@ -79,6 +91,12 @@ export async function signIn(payload: FormData) {
                cookieStore.set({
                   name: 'token',
                   value: token,
+                  httpOnly: true,
+                  path: '/',
+               });
+               cookieStore.set({
+                  name: 'role',
+                  value: 'doctor',
                   httpOnly: true,
                   path: '/',
                });
@@ -106,6 +124,21 @@ export async function signIn(payload: FormData) {
          msg: `An error occured ${err.toString()}`,
       };
    }
+}
+
+export async function signOut() {
+   const cookieStore = await cookies();
+   cookieStore.delete({
+      name: 'token',
+      httpOnly: true,
+      path: '/',
+   });
+   cookieStore.delete({
+      name: 'role',
+      httpOnly: true,
+      path: '/',
+   });
+   redirect('/auth/signin');
 }
 
 export async function getProfile() {

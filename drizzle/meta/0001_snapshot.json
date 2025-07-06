@@ -1,6 +1,6 @@
 {
-  "id": "da96a786-7afd-48fe-9dd2-bd6630a92ea4",
-  "prevId": "00000000-0000-0000-0000-000000000000",
+  "id": "7a576604-d287-4785-b39f-b7403327dea4",
+  "prevId": "da96a786-7afd-48fe-9dd2-bd6630a92ea4",
   "version": "7",
   "dialect": "postgresql",
   "tables": {
@@ -726,13 +726,13 @@
         },
         "start_time": {
           "name": "start_time",
-          "type": "time",
+          "type": "varchar",
           "primaryKey": false,
           "notNull": true
         },
         "end_time": {
           "name": "end_time",
-          "type": "time",
+          "type": "varchar",
           "primaryKey": false,
           "notNull": true
         },

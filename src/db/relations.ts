@@ -17,15 +17,15 @@ export const schedulesRelations = relations(schedules, ({ one, many }) => ({
    appointments: many(appointments),
 }));
 
-export const doctorsRelations = relations(doctors, ({ one, many }) => ({
+export const doctorsRelations = relations(doctors, ({ many }) => ({
    schedules: many(schedules),
 }));
 
-export const nursesRelations = relations(nurses, ({ one, many }) => ({
+export const nursesRelations = relations(nurses, ({ many }) => ({
    medicalRecords: many(medicalRecords),
 }));
 
-export const patientsRelations = relations(patients, ({ one, many }) => ({
+export const patientsRelations = relations(patients, ({ many }) => ({
    appointments: many(appointments),
 }));
 

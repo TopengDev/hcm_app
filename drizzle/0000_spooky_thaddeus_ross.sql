@@ -1,6 +1,7 @@
 CREATE TABLE "appointments" (
 	"appointment_id" serial PRIMARY KEY NOT NULL,
 	"patient_id" integer NOT NULL,
+	"doctor_id" integer NOT NULL,
 	"schedule_id" integer NOT NULL,
 	"appointment_date" date NOT NULL,
 	"start_time" time NOT NULL,
@@ -117,6 +118,7 @@ CREATE TABLE "schedules" (
 --> statement-breakpoint
 ALTER TABLE "appointments" ADD CONSTRAINT "appointments_patient_id_fkey" FOREIGN KEY ("patient_id") REFERENCES "public"."patients"("patient_id") ON DELETE no action ON UPDATE no action;--> statement-breakpoint
 ALTER TABLE "appointments" ADD CONSTRAINT "appointments_schedule_id_fkey" FOREIGN KEY ("schedule_id") REFERENCES "public"."schedules"("schedule_id") ON DELETE no action ON UPDATE no action;--> statement-breakpoint
+ALTER TABLE "appointments" ADD CONSTRAINT "appointments_doctor_id_fkey" FOREIGN KEY ("doctor_id") REFERENCES "public"."doctors"("doctor_id") ON DELETE no action ON UPDATE no action;--> statement-breakpoint
 ALTER TABLE "medical_records" ADD CONSTRAINT "medical_records_appointment_id_fkey" FOREIGN KEY ("appointment_id") REFERENCES "public"."appointments"("appointment_id") ON DELETE no action ON UPDATE no action;--> statement-breakpoint
 ALTER TABLE "medical_records" ADD CONSTRAINT "medical_records_nurse_id_fkey" FOREIGN KEY ("nurse_id") REFERENCES "public"."nurses"("nurse_id") ON DELETE no action ON UPDATE no action;--> statement-breakpoint
 ALTER TABLE "recipes" ADD CONSTRAINT "recipes_record_id_fkey" FOREIGN KEY ("record_id") REFERENCES "public"."medical_records"("record_id") ON DELETE no action ON UPDATE no action;--> statement-breakpoint

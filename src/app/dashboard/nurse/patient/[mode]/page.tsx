@@ -14,6 +14,17 @@ import GlobalProvider from '@/app/globalProvider';
 import { useParams, useRouter, useSearchParams } from 'next/navigation';
 import { Button } from '@/components/ui/button';
 import { Trash2 } from 'lucide-react';
+import {
+   Table,
+   TableCaption,
+   TableHeader,
+   TableRow,
+   TableHead,
+   TableBody,
+   TableCell,
+} from '@/components/ui/table';
+import { getPatientAppointments } from '@/services/appointments.service';
+import Link from 'next/link';
 
 function PageComponent() {
    const router = useRouter();
@@ -36,7 +47,7 @@ function PageComponent() {
                if (!response?.success) {
                   toast.info(response?.msg);
                } else {
-                  router.push('/dashboard');
+                  router.push('/dashboard/nurse/patient');
                }
 
                return response;
@@ -72,6 +83,15 @@ function PageComponent() {
    }
 
    const [initialValues, setInitialValues] = useState<any>();
+
+   const [appointments, setAppointments] = useState<any[]>([]);
+   async function fetchAppointments() {
+      setAppointments(
+         (await getPatientAppointments(searchParams.get('id') || '')).data ||
+            [],
+      );
+   }
+
    useEffect(() => {
       const patientId = searchParams.get('id');
       async function getUser() {
@@ -80,11 +100,14 @@ function PageComponent() {
          setInitialValues(response.data);
       }
 
-      if (patientId) getUser();
+      if (patientId) {
+         getUser();
+         fetchAppointments();
+      }
    }, []);
 
    return (
-      <div className="w-fulll h-fulll flex items-center justify-center overflow-y-scroll">
+      <div className="w-fulll h-fulll flex flex-col items-center justify-center overflow-y-scroll">
          <div className="w-full sm:w-md md:w-lg lg:w-xl xl:w-2xl 2xl:w-3xl">
             <Form
                title="Patient Registration"
@@ -107,6 +130,52 @@ function PageComponent() {
                   </Button>
                </div>
             )}
+         </div>
+         <div className="w-full min-h-[640px] overflow-scroll p-8 my-8">
+            <div className="my-4 flex items-center justify-between w-full">
+               <h2 className="text-xl font-semibold">List Kunjungan</h2>
+               <Link
+                  href={`/dashboard/nurse/appointment/create?patientId=${searchParams.get(
+                     'id',
+                  )}`}
+               >
+                  <Button className="hover:cursor-pointer">
+                     Tambah Kunjungan
+                  </Button>
+               </Link>
+            </div>
+            <Table>
+               <TableCaption>List Kunjungan</TableCaption>
+               <TableHeader>
+                  <TableRow>
+                     <TableHead className="text-center">No</TableHead>
+                     <TableHead className="text-center">Tanggal</TableHead>
+                     <TableHead className="text-center">Keluhan</TableHead>
+                     <TableHead className="text-center">
+                        Status Kunjungan
+                     </TableHead>
+                  </TableRow>
+               </TableHeader>
+               <TableBody>
+                  {appointments?.map((appointment, i) => (
+                     <TableRow
+                        key={appointment.appointmentId}
+                        className="hover:cursor-pointer"
+                     >
+                        <TableCell className="text-center">{i + 1}</TableCell>
+                        <TableCell className="text-center">
+                           {appointment.appointmentDate}
+                        </TableCell>
+                        <TableCell className="text-center">
+                           {appointment.complaint}
+                        </TableCell>
+                        <TableCell className="text-center">
+                           {appointment.status}
+                        </TableCell>
+                     </TableRow>
+                  ))}
+               </TableBody>
+            </Table>
          </div>
       </div>
    );

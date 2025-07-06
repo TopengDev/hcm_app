@@ -1,6 +1,6 @@
 'use client';
 import React from 'react';
-import Form, { TFormProps } from '@/components/custom/form';
+import Form from '@/components/custom/form';
 import { formFields } from './form';
 import { signIn } from '@/services/auth.service';
 import { toast } from 'react-toastify';
@@ -35,7 +35,7 @@ function Page() {
                actionCallback={onSubmit}
             />
             <div className=" w-full flex items-center justify-center gap-2 my-4 text-slate-400">
-               <p>Don't hace an account?</p>
+               <p>Don&apos;t hace an account?</p>
                <Link
                   href="/auth/registration"
                   className="text-slate-500 hover:text-slate-700"

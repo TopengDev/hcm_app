@@ -5,9 +5,13 @@ import type { NextRequest } from 'next/server';
 export function middleware(request: NextRequest) {
    const path = request.nextUrl.pathname;
    const token = request.cookies.get('token');
+   const role = request.cookies.get('role');
 
-   if (token && path.includes('auth'))
-      return NextResponse.redirect(new URL('/dashboard', request.url));
+   if (token && role && !path.includes(`${role?.value}`)) {
+      return NextResponse.redirect(
+         new URL(`/dashboard/${role?.value}`, request.url),
+      );
+   }
 
    if (!token && !path.includes('auth'))
       return NextResponse.redirect(new URL('/auth/signin', request.url));

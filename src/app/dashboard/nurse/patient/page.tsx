@@ -14,7 +14,7 @@ import {
 import { getPatients } from '@/services/patients.service';
 import Link from 'next/link';
 import { useRouter } from 'next/navigation';
-import React, { useEffect, useMemo, useState } from 'react';
+import React, { useEffect, useState } from 'react';
 
 function Page() {
    const router = useRouter();

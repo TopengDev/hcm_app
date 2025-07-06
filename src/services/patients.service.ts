@@ -154,7 +154,7 @@ export async function getPatients(payload?: FormData) {
 
       const patients = await db.query.patients.findMany({
          limit: request.limit || 10,
-         offset: request.offset || 1,
+         offset: request.offset || 0,
       });
 
       return {

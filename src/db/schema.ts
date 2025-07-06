@@ -11,15 +11,15 @@ import {
    text,
    numeric,
 } from 'drizzle-orm/pg-core';
-
+import { relations } from 'drizzle-orm/relations';
 export const schedules = pgTable(
    'schedules',
    {
       scheduleId: serial('schedule_id').notNull().primaryKey(),
       doctorId: integer('doctor_id').notNull(),
       dayOfWeek: integer('day_of_week').notNull(),
-      startTime: time('start_time').notNull(),
-      endTime: time('end_time').notNull(),
+      startTime: varchar('start_time').notNull(),
+      endTime: varchar('end_time').notNull(),
       maxPatients: integer('max_patients'),
       isRecurring: boolean('is_recurring'),
       validFrom: date('valid_from').notNull(),
@@ -100,6 +100,7 @@ export const appointments = pgTable(
    {
       appointmentId: serial('appointment_id').notNull().primaryKey(),
       patientId: integer('patient_id').notNull(),
+      doctorId: integer('doctor_id').notNull(),
       scheduleId: integer('schedule_id').notNull(),
       appointmentDate: date('appointment_date').notNull(),
       startTime: time('start_time').notNull(),
@@ -119,6 +120,11 @@ export const appointments = pgTable(
          columns: [table.scheduleId],
          foreignColumns: [schedules.scheduleId],
          name: 'appointments_schedule_id_fkey',
+      }),
+      foreignKey({
+         columns: [table.doctorId],
+         foreignColumns: [doctors.doctorId],
+         name: 'appointments_doctor_id_fkey',
       }),
    ],
 );
@@ -172,3 +178,60 @@ export const recipes = pgTable(
       }),
    ],
 );
+
+export const schedulesRelations = relations(schedules, ({ one, many }) => ({
+   doctor: one(doctors, {
+      fields: [schedules.doctorId],
+      references: [doctors.doctorId],
+   }),
+   appointments: many(appointments),
+}));
+
+export const doctorsRelations = relations(doctors, ({ many }) => ({
+   schedules: many(schedules),
+}));
+
+export const nursesRelations = relations(nurses, ({ many }) => ({
+   medicalRecords: many(medicalRecords),
+}));
+
+export const patientsRelations = relations(patients, ({ many }) => ({
+   appointments: many(appointments),
+}));
+
+export const appointmentsRelations = relations(
+   appointments,
+   ({ one, many }) => ({
+      patient: one(patients, {
+         fields: [appointments.patientId],
+         references: [patients.patientId],
+      }),
+      schedule: one(schedules, {
+         fields: [appointments.scheduleId],
+         references: [schedules.scheduleId],
+      }),
+      medicalRecords: many(medicalRecords),
+   }),
+);
+
+export const medicalRecordsRelations = relations(
+   medicalRecords,
+   ({ one, many }) => ({
+      appointment: one(appointments, {
+         fields: [medicalRecords.appointmentId],
+         references: [appointments.appointmentId],
+      }),
+      nurse: one(nurses, {
+         fields: [medicalRecords.nurseId],
+         references: [nurses.nurseId],
+      }),
+      recipes: many(recipes),
+   }),
+);
+
+export const recipesRelations = relations(recipes, ({ one }) => ({
+   medicalRecord: one(medicalRecords, {
+      fields: [recipes.recordId],
+      references: [medicalRecords.recordId],
+   }),
+}));

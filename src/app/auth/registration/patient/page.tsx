@@ -1,6 +1,6 @@
 'use client';
 
-import React, { useState } from 'react';
+import React from 'react';
 import Form from '@/components/custom/form';
 import { registerPatient } from '@/services/patients.service';
 import { formFields } from './form';
