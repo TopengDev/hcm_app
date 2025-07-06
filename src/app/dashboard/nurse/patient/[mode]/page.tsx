@@ -131,52 +131,56 @@ function PageComponent() {
                </div>
             )}
          </div>
-         <div className="w-full min-h-[640px] overflow-scroll p-8 my-8">
-            <div className="my-4 flex items-center justify-between w-full">
-               <h2 className="text-xl font-semibold">List Kunjungan</h2>
-               <Link
-                  href={`/dashboard/nurse/appointment/create?patientId=${searchParams.get(
-                     'id',
-                  )}`}
-               >
-                  <Button className="hover:cursor-pointer">
-                     Tambah Kunjungan
-                  </Button>
-               </Link>
-            </div>
-            <Table>
-               <TableCaption>List Kunjungan</TableCaption>
-               <TableHeader>
-                  <TableRow>
-                     <TableHead className="text-center">No</TableHead>
-                     <TableHead className="text-center">Tanggal</TableHead>
-                     <TableHead className="text-center">Keluhan</TableHead>
-                     <TableHead className="text-center">
-                        Status Kunjungan
-                     </TableHead>
-                  </TableRow>
-               </TableHeader>
-               <TableBody>
-                  {appointments?.map((appointment, i) => (
-                     <TableRow
-                        key={appointment.appointmentId}
-                        className="hover:cursor-pointer"
-                     >
-                        <TableCell className="text-center">{i + 1}</TableCell>
-                        <TableCell className="text-center">
-                           {appointment.appointmentDate}
-                        </TableCell>
-                        <TableCell className="text-center">
-                           {appointment.complaint}
-                        </TableCell>
-                        <TableCell className="text-center">
-                           {appointment.status}
-                        </TableCell>
+         {params.mode === 'detail' && (
+            <div className="w-full min-h-[640px] overflow-scroll p-8 my-8">
+               <div className="my-4 flex items-center justify-between w-full">
+                  <h2 className="text-xl font-semibold">List Kunjungan</h2>
+                  <Link
+                     href={`/dashboard/nurse/appointment/create?patientId=${searchParams.get(
+                        'id',
+                     )}`}
+                  >
+                     <Button className="hover:cursor-pointer">
+                        Tambah Kunjungan
+                     </Button>
+                  </Link>
+               </div>
+               <Table>
+                  <TableCaption>List Kunjungan</TableCaption>
+                  <TableHeader>
+                     <TableRow>
+                        <TableHead className="text-center">No</TableHead>
+                        <TableHead className="text-center">Tanggal</TableHead>
+                        <TableHead className="text-center">Keluhan</TableHead>
+                        <TableHead className="text-center">
+                           Status Kunjungan
+                        </TableHead>
                      </TableRow>
-                  ))}
-               </TableBody>
-            </Table>
-         </div>
+                  </TableHeader>
+                  <TableBody>
+                     {appointments?.map((appointment, i) => (
+                        <TableRow
+                           key={appointment.appointmentId}
+                           className="hover:cursor-pointer"
+                        >
+                           <TableCell className="text-center">
+                              {i + 1}
+                           </TableCell>
+                           <TableCell className="text-center">
+                              {appointment.appointmentDate}
+                           </TableCell>
+                           <TableCell className="text-center">
+                              {appointment.complaint}
+                           </TableCell>
+                           <TableCell className="text-center">
+                              {appointment.status}
+                           </TableCell>
+                        </TableRow>
+                     ))}
+                  </TableBody>
+               </Table>
+            </div>
+         )}
       </div>
    );
 }

@@ -15,6 +15,13 @@
       "when": 1751795087839,
       "tag": "0001_gorgeous_molly_hayes",
       "breakpoints": true
+    },
+    {
+      "idx": 2,
+      "version": "7",
+      "when": 1751802393900,
+      "tag": "0002_flashy_golden_guardian",
+      "breakpoints": true
     }
   ]
 }

@@ -17,7 +17,7 @@ import Link from 'next/link';
 const items = [
    {
       title: 'Kunjungan',
-      url: '/dashboard/nurse/visits',
+      url: '/dashboard/nurse/appointment',
       icon: BookCheckIcon,
    },
    {
@@ -27,7 +27,7 @@ const items = [
    },
    {
       title: 'Jadwal',
-      url: '/dashboard/nurse/schedules',
+      url: '/dashboard/nurse/schedule',
       icon: Calendar,
    },
 ];

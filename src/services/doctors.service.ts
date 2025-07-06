@@ -54,3 +54,30 @@ export async function registerDoctor(payload: FormData) {
       };
    }
 }
+
+export async function getDoctors(payload?: FormData) {
+   try {
+      const request: any = {};
+      if (payload)
+         payload
+            .entries()
+            .forEach((entry) => ((request as any)[entry[0]] = entry[1]));
+
+      const doctors = await db.query.doctors.findMany({
+         limit: request.limit || 10,
+         offset: request.offset || 0,
+      });
+
+      return {
+         success: true,
+         data: doctors,
+         msg: 'Data fetched successfully',
+      };
+   } catch (err: any) {
+      console.error(err.toString());
+      return {
+         success: false,
+         msg: `An error occured ${err.toString()}`,
+      };
+   }
+}

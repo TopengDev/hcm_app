@@ -2,6 +2,7 @@
 
 import { db } from '@/db/db';
 import { schedules } from '@/db/schema';
+import { eq } from 'drizzle-orm';
 
 export async function createSchedule(payload: FormData) {
    try {
@@ -30,6 +31,48 @@ export async function createSchedule(payload: FormData) {
    }
 }
 
+export async function updateSchedule(payload: FormData) {
+   try {
+      const updatedSchedule: any = {};
+      payload
+         .entries()
+         .forEach((entry) => ((updatedSchedule as any)[entry[0]] = entry[1]));
+
+      if (!updatedSchedule.scheduleId) {
+         return {
+            success: false,
+            msg: 'Missing scheduleId for update.',
+         };
+      }
+
+      const scheduleId = updatedSchedule.scheduleId;
+      delete updatedSchedule.scheduleId;
+      delete updatedSchedule.isRecurring;
+
+      console.log({ updatedSchedule });
+
+      const result = (
+         await db
+            .update(schedules)
+            .set(updatedSchedule)
+            .where(eq(schedules.scheduleId, scheduleId))
+            .returning()
+      )[0];
+
+      return {
+         success: !!result,
+         data: result,
+         msg: 'Schedule updated successfully.',
+      };
+   } catch (err: any) {
+      console.error(err.toString());
+      return {
+         success: false,
+         msg: `An error occurred: ${err.toString()}`,
+      };
+   }
+}
+
 export async function getAllSchedules(payload?: FormData) {
    try {
       const request: any = {};
@@ -44,9 +87,11 @@ export async function getAllSchedules(payload?: FormData) {
          },
          limit: request?.limit || 10,
          offset: request?.offset || 0,
+         where: request?.doctorId
+            ? (schedules, { eq }) => eq(schedules?.doctorId, request?.doctorId)
+            : undefined,
       });
 
-      // Group by doctorId
       const groupedSchedules: Record<
          number,
          {
@@ -84,6 +129,27 @@ export async function getAllSchedules(payload?: FormData) {
       return {
          success: true,
          data: groupedArray,
+         msg: 'Data fetched successfully',
+      };
+   } catch (err: any) {
+      console.error(err.toString());
+      return {
+         success: false,
+         msg: `An error occured ${err.toString()}`,
+      };
+   }
+}
+
+export async function getScheduleById(scheduleId: string) {
+   try {
+      const schedule = await db.query.schedules.findFirst({
+         where: (schedules, { eq }) =>
+            eq(schedules.scheduleId, scheduleId as any),
+      });
+
+      return {
+         success: true,
+         data: { ...schedule, createdAt: undefined, updatedAt: undefined },
          msg: 'Data fetched successfully',
       };
    } catch (err: any) {
