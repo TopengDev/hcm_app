@@ -1,7 +1,7 @@
 'use server';
 import { db } from '../db/db';
 import { patients } from '../db/schema';
-import { eq } from 'drizzle-orm';
+import { desc, eq, ilike, or } from 'drizzle-orm';
 
 export async function registerPatient(payload: FormData) {
    try {
@@ -152,14 +152,25 @@ export async function getPatients(payload?: FormData) {
             .entries()
             .forEach((entry) => ((request as any)[entry[0]] = entry[1]));
 
-      const patients = await db.query.patients.findMany({
-         limit: request.limit || 10,
-         offset: request.offset || 0,
-      });
+      const limit = Number(request.limit || 10);
+      const offset = Number(request.offset || 0);
+      const search = (request.search || '').toLowerCase();
+
+      const p = patients;
+
+      const whereClause = search ? or(ilike(p.name, `%${search}%`)) : undefined;
+
+      const results = await db
+         .select()
+         .from(p)
+         .where(whereClause)
+         .limit(limit)
+         .offset(offset)
+         .orderBy(desc(p.updatedAt));
 
       return {
          success: true,
-         data: patients,
+         data: results,
          msg: 'Data fetched successfully',
       };
    } catch (err: any) {

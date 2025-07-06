@@ -1,4 +1,5 @@
 'use server';
+import { eq } from 'drizzle-orm';
 import { db } from '../db/db';
 import { nurses } from '../db/schema';
 
@@ -43,6 +44,34 @@ export async function registerNurse(payload: FormData) {
          success: !!result,
          data: result,
          msg: 'Success',
+      };
+   } catch (err: any) {
+      console.error(err.toString());
+      return {
+         success: false,
+         msg: `An error occured ${err.toString()}`,
+      };
+   }
+}
+
+export async function deleteNurse(nurseId: string) {
+   try {
+      const nurseResult = await db.query.nurses.findFirst({
+         where: (nurses, { eq }) => eq(nurses.nurseId, nurseId as any),
+      });
+
+      if (!nurseResult) {
+         return {
+            success: false,
+            msg: "Nurse doesn't exist",
+         };
+      }
+
+      await db.delete(nurses).where(eq(nurses.nurseId, nurseId as any));
+
+      return {
+         success: true,
+         msg: 'Data deleted successfully',
       };
    } catch (err: any) {
       console.error(err.toString());

@@ -75,8 +75,6 @@ function PageComponent() {
          } else {
             router.push('/dashboard/nurse/patient');
          }
-
-         console.log({ response });
       } catch (error: any) {
          toast.error(error.toString());
       }
@@ -108,7 +106,10 @@ function PageComponent() {
 
    return (
       <div className="w-fulll h-fulll flex flex-col items-center justify-center overflow-y-scroll">
-         <div className="w-full sm:w-md md:w-lg lg:w-xl xl:w-2xl 2xl:w-3xl">
+         <div className="w-full p-8">
+            <h2 className="text-lg font-bold">Informasi Pasien</h2>
+         </div>
+         <div className="w-full  px-8">
             <Form
                title="Patient Registration"
                description="Please fill in the form below"
@@ -125,7 +126,7 @@ function PageComponent() {
                      type="button"
                      onClick={onDelete}
                   >
-                     Delete Patient
+                     Hapus Pasien
                      <Trash2 />
                   </Button>
                </div>

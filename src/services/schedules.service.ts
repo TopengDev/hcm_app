@@ -1,8 +1,8 @@
 'use server';
 
 import { db } from '@/db/db';
-import { schedules } from '@/db/schema';
-import { eq } from 'drizzle-orm';
+import { doctors, schedules } from '@/db/schema';
+import { asc, desc, eq, ilike, or, sql } from 'drizzle-orm';
 
 export async function createSchedule(payload: FormData) {
    try {
@@ -10,8 +10,6 @@ export async function createSchedule(payload: FormData) {
       payload
          .entries()
          .forEach((entry) => ((newSchedule as any)[entry[0]] = entry[1]));
-
-      console.log({ newSchedule });
 
       const result = (
          await db.insert(schedules).values(newSchedule).returning()
@@ -49,8 +47,6 @@ export async function updateSchedule(payload: FormData) {
       delete updatedSchedule.scheduleId;
       delete updatedSchedule.isRecurring;
 
-      console.log({ updatedSchedule });
-
       const result = (
          await db
             .update(schedules)
@@ -73,69 +69,134 @@ export async function updateSchedule(payload: FormData) {
    }
 }
 
-export async function getAllSchedules(payload?: FormData) {
+export async function deleteSchedule(scheduleId: string) {
    try {
-      const request: any = {};
-      if (payload)
-         payload
-            .entries()
-            .forEach((entry) => ((request as any)[entry[0]] = entry[1]));
-
-      const schedulesResult = await db.query.schedules.findMany({
-         with: {
-            doctor: true,
-         },
-         limit: request?.limit || 10,
-         offset: request?.offset || 0,
-         where: request?.doctorId
-            ? (schedules, { eq }) => eq(schedules?.doctorId, request?.doctorId)
-            : undefined,
+      const scheduleResult = await db.query.schedules.findFirst({
+         where: (schedules, { eq }) =>
+            eq(schedules.scheduleId, scheduleId as any),
       });
 
-      const groupedSchedules: Record<
-         number,
-         {
-            doctor: (typeof schedulesResult)[0]['doctor'];
-            schedules: typeof schedulesResult;
-         }
-      > = {};
-
-      for (const schedule of schedulesResult) {
-         const doctorId = schedule.doctorId;
-
-         if (!groupedSchedules[doctorId]) {
-            groupedSchedules[doctorId] = {
-               doctor: schedule.doctor,
-               schedules: [],
-            };
-         }
-
-         groupedSchedules[doctorId].schedules.push({
-            dayOfWeek: schedule.dayOfWeek,
-            startTime: schedule.startTime,
-            endTime: schedule.endTime,
-            scheduleId: schedule.scheduleId,
-            maxPatients: schedule.maxPatients,
-            isRecurring: schedule.isRecurring,
-            validFrom: schedule.validFrom,
-            validTo: schedule.validTo,
-            createdAt: schedule.createdAt,
-            updatedAt: schedule.updatedAt,
-         } as any);
+      if (!scheduleResult) {
+         return {
+            success: false,
+            msg: "Schedule doesn't exist",
+         };
       }
 
-      const groupedArray = Object.values(groupedSchedules);
+      const appointments = await db.query.appointments.findMany({
+         where: (appointment, { eq }) =>
+            eq(appointment.scheduleId, scheduleId as any),
+      });
+
+      if (appointments?.length)
+         return {
+            success: false,
+            msg: 'Masih ada kunjungan untuk jadwal ini, silahkan menghapus kunjungan terkait',
+         };
+
+      await db
+         .delete(schedules)
+         .where(eq(schedules.scheduleId, scheduleId as any));
 
       return {
          success: true,
-         data: groupedArray,
-         msg: 'Data fetched successfully',
+         msg: 'Data deleted successfully',
       };
    } catch (err: any) {
       console.error(err.toString());
       return {
          success: false,
          msg: `An error occured ${err.toString()}`,
+      };
+   }
+}
+
+export async function getAllSchedules(payload?: FormData) {
+   try {
+      const request: any = {};
+      if (payload) {
+         for (const [key, value] of payload.entries()) {
+            request[key] = value;
+         }
+      }
+
+      const limit = Number(request.limit || 10);
+      const offset = Number(request.offset || 0);
+      const search = (request.search || '').toLowerCase();
+
+      const s = schedules;
+      const d = doctors;
+
+      const whereClause = request?.doctorId
+         ? eq(d.doctorId, request.doctorId)
+         : search
+         ? ilike(d.name, `%${search}%`)
+         : undefined;
+
+      const rows = await db
+         .select({
+            doctorId: d.doctorId,
+            doctorName: d.name,
+            scheduleId: s.scheduleId,
+            dayOfWeek: s.dayOfWeek,
+            startTime: s.startTime,
+            endTime: s.endTime,
+            validFrom: s.validFrom,
+            validTo: s.validTo,
+            createdAt: s.createdAt,
+         })
+         .from(s)
+         .leftJoin(d, eq(s.doctorId, d.doctorId))
+         .where(whereClause);
+
+      const grouped: Record<
+         number,
+         {
+            doctorId: number;
+            doctorName: string;
+            schedules: Record<number, any>;
+         }
+      > = {};
+
+      for (const row of rows) {
+         const docId: any = row.doctorId;
+         const day = row.dayOfWeek;
+
+         if (!grouped[docId]) {
+            grouped[docId] = {
+               doctorId: docId,
+               doctorName: row.doctorName || '',
+               schedules: {},
+            };
+         }
+
+         const existing = grouped[docId].schedules[day];
+         if (
+            !existing ||
+            new Date(row.createdAt as any) > new Date(existing.createdAt)
+         ) {
+            grouped[docId].schedules[day] = row;
+         }
+      }
+
+      const result = Object.values(grouped)
+         .map((g) => ({
+            doctorId: g.doctorId,
+            doctorName: g.doctorName,
+            schedules: Object.values(g.schedules),
+         }))
+         .slice(offset, offset + limit);
+
+      return {
+         success: true,
+         data: result,
+         msg: 'Data fetched successfully',
+      };
+   } catch (err: any) {
+      console.error(err);
+      return {
+         success: false,
+         msg: `An error occurred: ${err.toString()}`,
       };
    }
 }

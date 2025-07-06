@@ -28,7 +28,7 @@ function Page() {
 
    return (
       <div className="w-screen h-screen flex items-center justify-center overflow-y-scroll">
-         <div className="w-full sm:w-md md:w-lg lg:w-xl xl:w-2xl 2xl:w-3xl">
+         <div className="w-full  px-8">
             <Form
                title="Nurse Registration"
                description="Please fill in the form below"

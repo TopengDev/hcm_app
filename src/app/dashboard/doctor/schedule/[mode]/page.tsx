@@ -43,7 +43,7 @@ function Page() {
 
    return (
       <div className="w-fulll h-fulll flex flex-col items-center justify-center overflow-y-scroll">
-         <div className="w-full sm:w-md md:w-lg lg:w-xl xl:w-2xl 2xl:w-3xl">
+         <div className="w-full  px-8">
             <Form
                title="Pendaftaran Jadwal"
                description="Silahkan mengisi detail jadwal praktik"

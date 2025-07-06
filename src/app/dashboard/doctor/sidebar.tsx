@@ -20,17 +20,17 @@ import { signOut } from '@/services/auth.service';
 const items = [
    {
       title: 'Kunjungan',
-      url: '/dashboard/nurse/visits',
+      url: '/dashboard/doctor/appointment',
       icon: BookCheckIcon,
    },
    {
       title: 'Pasien',
-      url: '/dashboard/nurse/patient',
+      url: '/dashboard/doctor/patient',
       icon: Bed,
    },
    {
       title: 'Jadwal',
-      url: '/dashboard/nurse/schedules',
+      url: '/dashboard/doctor/schedule',
       icon: Calendar,
    },
 ];

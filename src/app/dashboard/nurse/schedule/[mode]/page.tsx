@@ -6,10 +6,13 @@ import { useParams, useRouter, useSearchParams } from 'next/navigation';
 import { toast } from 'react-toastify';
 import {
    createSchedule,
+   deleteSchedule,
    getScheduleById,
    updateSchedule,
 } from '@/services/schedules.service';
 import { getDoctors } from '@/services/doctors.service';
+import { Button } from '@/components/ui/button';
+import { Trash2 } from 'lucide-react';
 
 function Page() {
    const router = useRouter();
@@ -45,9 +48,26 @@ function Page() {
       }
    }
 
+   async function onDelete() {
+      try {
+         const response = await deleteSchedule(searchParams.get('id') || '');
+
+         if (!response?.success) {
+            console.log({ response });
+            toast.info(response?.msg);
+         } else {
+            router.push('/dashboard/nurse/schedule');
+         }
+      } catch (error: any) {
+         toast.error(error.toString());
+      }
+   }
+
    const [doctors, setDoctors] = useState<any[]>([]);
    async function fetchDoctors() {
-      setDoctors((await getDoctors())?.data || []);
+      const formData = new FormData();
+      formData.append('limit', '100');
+      setDoctors((await getDoctors(formData))?.data || []);
    }
    useEffect(() => {
       fetchDoctors();
@@ -57,14 +77,15 @@ function Page() {
    async function fetchSchedule() {
       const schedule = (await getScheduleById(searchParams.get('id') || ''))
          ?.data;
-      setInitialValues({ ...schedule, doctorId: String(schedule?.doctorId) });
+      setInitialValues({
+         ...schedule,
+         doctorId: String(schedule?.doctorId),
+         dayOfWeek: String(schedule?.dayOfWeek),
+      });
    }
    useEffect(() => {
       if (searchParams.get('id')) fetchSchedule();
    }, [router]);
-   useEffect(() => {
-      console.log({ initialValues });
-   }, [initialValues]);
 
    const formFields: TFormProps['fields'] = useMemo(
       () => [
@@ -170,9 +191,12 @@ function Page() {
 
    return (
       <div className="w-fulll h-fulll flex flex-col items-center justify-center overflow-y-scroll">
+         <div className="w-full p-8">
+            <h2 className="text-lg font-bold">Informasi Jadwal</h2>
+         </div>
          {params.mode !== 'detail' ||
             (Object.keys(initialValues)?.length > 0 && (
-               <div className="w-full sm:w-md md:w-lg lg:w-xl xl:w-2xl 2xl:w-3xl">
+               <div className="w-full  px-8">
                   <Form
                      title="Pendaftaran Jadwal"
                      description="Silahkan mengisi detail jadwal praktik"
@@ -185,6 +209,19 @@ function Page() {
                         params.mode === 'detail' ? initialValues : undefined
                      }
                   />
+                  {params.mode === 'detail' && (
+                     <div className="w-full my-4">
+                        <Button
+                           variant={'destructive'}
+                           className=" hover:cursor-pointer"
+                           type="button"
+                           onClick={onDelete}
+                        >
+                           Hapus Jadwal
+                           <Trash2 />
+                        </Button>
+                     </div>
+                  )}
                </div>
             ))}
       </div>

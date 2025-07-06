@@ -1,8 +1,10 @@
 'use server';
 
 import { db } from '@/db/db';
-import { appointments } from '@/db/schema';
-import { eq } from 'drizzle-orm';
+import { appointments, patients } from '@/db/schema';
+import { desc, eq, ilike, or, sql } from 'drizzle-orm';
+import { seed } from 'drizzle-seed';
+import * as schema from '../db/schema';
 
 export async function createAppointments(payload: FormData) {
    try {
@@ -65,7 +67,6 @@ export async function updateAppointments(payload: FormData) {
          .entries()
          .forEach((entry) => ((updateData as any)[entry[0]] = entry[1]));
 
-      console.log({ updateData });
       if (!updateData.appointmentId) {
          return {
             success: false,
@@ -134,6 +135,37 @@ export async function updateAppointments(payload: FormData) {
    }
 }
 
+export async function deleteAppointment(appointmentId: string) {
+   try {
+      const appointmentResult = await db.query.appointments.findFirst({
+         where: (appointments, { eq }) =>
+            eq(appointments.appointmentId, appointmentId as any),
+      });
+
+      if (!appointmentResult) {
+         return {
+            success: false,
+            msg: "Appointment doesn't exist",
+         };
+      }
+
+      await db
+         .delete(appointments)
+         .where(eq(appointments.appointmentId, appointmentId as any));
+
+      return {
+         success: true,
+         msg: 'Data deleted successfully',
+      };
+   } catch (err: any) {
+      console.error(err.toString());
+      return {
+         success: false,
+         msg: `An error occured ${err.toString()}`,
+      };
+   }
+}
+
 export async function getPatientAppointments(patientId: string) {
    try {
       const patient = await db.query.appointments.findMany({
@@ -144,6 +176,7 @@ export async function getPatientAppointments(patientId: string) {
             schedule: true,
             medicalRecords: true,
          },
+         orderBy: (appointment, { desc }) => desc(appointment.updatedAt),
       });
 
       return {
@@ -162,31 +195,48 @@ export async function getPatientAppointments(patientId: string) {
 export async function getAllAppointments(payload?: FormData) {
    try {
       const request: any = {};
-      if (payload)
-         payload
-            .entries()
-            .forEach((entry) => ((request as any)[entry[0]] = entry[1]));
+      if (payload) {
+         payload.entries().forEach((entry) => {
+            request[entry[0]] = entry[1];
+         });
+      }
 
-      const appointmentsResult = await db.query.appointments.findMany({
-         limit: request?.limit || 10,
-         offset: request?.offset || 0,
-         with: {
-            patient: true,
-            schedule: true,
-            medicalRecords: true,
-         },
-      });
+      const limit = Number(request.limit || 10);
+      const offset = Number(request.offset || 0);
+      const search = (request.search || '').toLowerCase();
 
+      const a = appointments;
+      const p = patients;
+
+      const whereClause = search
+         ? or(
+              ilike(a.status, `%${search}%`),
+              ilike(a.complaint, `%${search}%`),
+              ilike(p.name, `%${search}%`),
+           )
+         : undefined;
+
+      const results = await db
+         .select()
+         .from(a)
+         .leftJoin(p, eq(a.patientId, p.patientId))
+         .where(whereClause)
+         .limit(limit)
+         .offset(offset)
+         .orderBy(desc(a.updatedAt));
       return {
          success: true,
-         data: appointmentsResult,
+         data: results?.map((resultData) => ({
+            ...resultData?.appointments,
+            patient: resultData?.patients,
+         })),
          msg: 'Data fetched successfully',
       };
    } catch (err: any) {
       console.error(err.toString());
       return {
          success: false,
-         msg: `An error occured ${err.toString()}`,
+         msg: `An error occurred ${err.toString()}`,
       };
    }
 }
@@ -216,6 +266,29 @@ export async function getAppointment(appointmentId?: string) {
       return {
          success: false,
          msg: `An error occured ${err.toString()}`,
+      };
+   }
+}
+export async function getAppointmentTotals() {
+   try {
+      const result = await db
+         .select({
+            status: appointments.status,
+            count: sql<number>`COUNT(*)`,
+         })
+         .from(appointments)
+         .groupBy(appointments.status);
+
+      return {
+         success: true,
+         data: result,
+         msg: 'Appointment totals grouped by status fetched successfully',
+      };
+   } catch (err: any) {
+      console.error(err.toString());
+      return {
+         success: false,
+         msg: `An error occurred: ${err.toString()}`,
       };
    }
 }

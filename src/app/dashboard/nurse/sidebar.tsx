@@ -3,6 +3,7 @@ import { Calendar, BookCheckIcon, Bed } from 'lucide-react';
 import {
    Sidebar,
    SidebarContent,
+   SidebarFooter,
    SidebarGroup,
    SidebarGroupContent,
    SidebarGroupLabel,
@@ -12,6 +13,8 @@ import {
    SidebarMenuItem,
 } from '@/components/ui/sidebar';
 import Link from 'next/link';
+import { Button } from '@/components/ui/button';
+import { signOut } from '@/services/auth.service';
 
 // Menu items.
 const items = [
@@ -59,6 +62,13 @@ export function DashboardSidebar() {
                </SidebarGroupContent>
             </SidebarGroup>
          </SidebarContent>
+         <SidebarFooter className="w-full flex items-center justify-center my-8">
+            <form action={signOut}>
+               <Button variant={'destructive'} className="hover:cursor-pointer">
+                  Signout
+               </Button>
+            </form>
+         </SidebarFooter>
       </Sidebar>
    );
 }

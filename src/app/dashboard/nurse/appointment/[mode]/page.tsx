@@ -6,10 +6,11 @@ import { useParams, useRouter, useSearchParams } from 'next/navigation';
 import { toast } from 'react-toastify';
 import { getAllSchedules } from '@/services/schedules.service';
 import { getPatients } from '@/services/patients.service';
-import { getDoctors } from '@/services/doctors.service';
+import { getDoctors, getDoctorsSelection } from '@/services/doctors.service';
 import { dayOfWeekAsString } from '@/lib/utils';
 import {
    createAppointments,
+   deleteAppointment,
    getAppointment,
    updateAppointments,
 } from '@/services/appointments.service';
@@ -22,6 +23,11 @@ import {
    TableCell,
    Table,
 } from '@/components/ui/table';
+import { Button } from '@/components/ui/button';
+import { Trash2 } from 'lucide-react';
+import { useDebounce } from '@/hooks/useDebounce';
+import { Input } from '@/components/ui/input';
+import Link from 'next/link';
 
 function Page() {
    const router = useRouter();
@@ -29,24 +35,6 @@ function Page() {
    const searchParams = useSearchParams();
 
    const [initialValues, setInitialValues] = useState<any>({});
-   useEffect(() => {
-      const appointmentId = searchParams.get('id');
-      async function fetchAppointment() {
-         const response = await getAppointment(appointmentId || '');
-
-         setInitialValues({
-            ...response.data,
-            patientId: String(response.data?.patientId),
-            doctorId: String(response?.data?.doctorId),
-            scheduleId: String(response?.data?.scheduleId),
-         });
-         if (response.data?.doctorId) setChosenDoctor(response?.data?.doctorId);
-      }
-
-      if (appointmentId) {
-         fetchAppointment();
-      }
-   }, [router]);
 
    async function onSubmit(formData: FormData) {
       try {
@@ -77,177 +65,282 @@ function Page() {
       }
    }
 
+   async function onDelete() {
+      try {
+         const response = await deleteAppointment(searchParams.get('id') || '');
+
+         if (!response?.success) {
+            toast.info(response?.msg);
+         } else {
+            router.push('/dashboard/nurse/appointment');
+         }
+      } catch (error: any) {
+         toast.error(error.toString());
+      }
+   }
+
    const [patients, setPatients] = useState<any[]>([]);
    async function fetchPatients() {
-      setPatients((await getPatients())?.data || []);
+      const formData = new FormData();
+      formData.append('limit', '100');
+      setPatients((await getPatients(formData))?.data || []);
+      return true;
    }
    const [doctors, setDoctors] = useState<any[]>([]);
    async function fetchDoctors() {
-      setDoctors((await getDoctors())?.data || []);
+      const formData = new FormData();
+      formData.append('limit', '100');
+      setDoctors((await getDoctorsSelection(formData))?.data || []);
+      return true;
    }
    const [schedulesTable, setSchedulesTable] = useState<any[]>([]);
    const [schedules, setSchedules] = useState<any[]>([]);
    async function fetchSchedulesSelection(doctorId: string) {
       const payload = new FormData();
+      payload.append('limit', '100');
       if (doctorId) payload.append('doctorId', doctorId);
       const response = (await getAllSchedules(payload))?.data || [];
-      const result = (response || [])?.[0]?.schedules;
+      const result: any = (response || [])?.[response.length - 1]?.schedules;
+      console.log({ doctorId });
+      console.log({ response });
       setSchedules(result);
+      return true;
    }
    async function fetchSchedulesTable() {
-      const response = (await getAllSchedules())?.data || [];
+      const payload = new FormData();
+      payload.append('limit', String(limit));
+      payload.append('offset', String((page - 1) * limit));
+      payload.append('search', search);
+      const response = (await getAllSchedules(payload))?.data || [];
       const result = response || [];
+      console.log({ result });
       setSchedulesTable(result);
    }
+   const [formReady, setFormReady] = useState(false);
+
+   const [search, setSearch] = useState('');
+   const [page, setPage] = useState(1);
+   const limit = 10;
+   const [hasNextPage, setHasNextPage] = useState(true);
+
    useEffect(() => {
-      fetchPatients();
-      fetchDoctors();
       fetchSchedulesTable();
-   }, [initialValues]);
-   const [chosenDoctor, setChosenDoctor] = useState<any>();
+   }, [page]);
+
+   const debouncedSearch = useDebounce(search, 500);
    useEffect(() => {
-      if (chosenDoctor) fetchSchedulesSelection(chosenDoctor);
-   }, [chosenDoctor]);
+      setPage(1);
+      fetchSchedulesTable();
+   }, [debouncedSearch]);
+
+   useEffect(() => {
+      async function init() {
+         const appointmentId = searchParams.get('id');
+
+         const [doctorsData, patientsData] = await Promise.all([
+            fetchDoctors(),
+            fetchPatients(),
+         ]);
+
+         if (appointmentId) {
+            const response = await getAppointment(appointmentId);
+            const doctorId = String(response.data?.doctorId);
+
+            if (doctorsData && patientsData) {
+               setInitialValues({
+                  ...response.data,
+                  patientId: String(response.data?.patientId),
+                  doctorId,
+                  scheduleId: String(response?.data?.scheduleId),
+               });
+
+               setChosenDoctor(doctorId);
+
+               await fetchSchedulesSelection(doctorId);
+            }
+         }
+
+         await fetchSchedulesTable();
+
+         setFormReady(true);
+      }
+
+      init();
+   }, []);
+
+   const [chosenDoctor, setChosenDoctor] = useState<any>();
 
    const formFields: TFormProps['fields'] = useMemo(
-      () => [
-         {
-            horizontalFieldsContainer: true,
-            fields: [
-               {
-                  label: 'Pasien',
-                  inputProps: {
-                     name: 'patientId',
-                     required: true,
-                  },
-                  isSelect: true,
-                  options: patients.map((patient) => ({
-                     label: patient.name,
-                     value: String(patient.patientId),
-                  })),
-               },
-               {
-                  label: 'Dokter',
-                  inputProps: {
-                     name: 'doctorId',
-                     required: true,
-                  },
-                  isSelect: true,
-                  options: doctors.map((doctor) => ({
-                     label: doctor.name,
-                     value: String(doctor.doctorId),
-                  })),
-                  onChoice: (v) => setChosenDoctor(v),
-               },
-            ],
-         },
-         {
-            horizontalFieldsContainer: true,
-            fields: [
-               {
-                  label: 'Jadwal',
-                  inputProps: {
-                     name: 'scheduleId',
-                     required: true,
-                     disabled: !chosenDoctor,
-                  },
-                  isSelect: true,
-                  options: schedules.map((schedule) => ({
-                     label: dayOfWeekAsString(schedule.dayOfWeek),
+      () =>
+         formReady
+            ? [
+                 {
+                    horizontalFieldsContainer: true,
+                    fields: [
+                       {
+                          label: 'Pasien',
+                          inputProps: {
+                             name: 'patientId',
+                             required: true,
+                          },
+                          isSelect: true,
+                          options: patients.map((patient) => ({
+                             label: patient.name,
+                             value: String(patient.patientId),
+                          })),
+                       },
+                       {
+                          label: 'Dokter',
+                          inputProps: {
+                             name: 'doctorId',
+                             required: true,
+                          },
+                          isSelect: true,
+                          options: doctors.map((doctor) => ({
+                             label: doctor.name,
+                             value: String(doctor.doctorId),
+                          })),
+                          onChoice: (v) => setChosenDoctor(v),
+                       },
+                    ],
+                 },
+                 {
+                    horizontalFieldsContainer: true,
+                    fields: [
+                       {
+                          label: 'Jadwal',
+                          inputProps: {
+                             name: 'scheduleId',
+                             required: true,
+                             disabled: !chosenDoctor,
+                          },
+                          isSelect: true,
+                          options: (schedules || []).map((schedule) => ({
+                             label: dayOfWeekAsString(schedule?.dayOfWeek),
 
-                     value: String(schedule?.scheduleId),
-                  })),
-               },
-               {
-                  label: 'Tanggal',
-                  inputProps: {
-                     name: 'appointmentDate',
-                     required: true,
-                     type: 'date',
-                  },
-               },
-            ],
-         },
-         {
-            horizontalFieldsContainer: true,
-            fields: [
-               {
-                  label: 'Waktu Mulai',
-                  inputProps: {
-                     name: 'startTime',
-                     required: true,
-                     type: 'time',
-                  },
-               },
-               {
-                  label: 'Sampai',
-                  inputProps: {
-                     name: 'endTime',
-                     type: 'time',
-                  },
-               },
-            ],
-         },
-         {
-            horizontalFieldsContainer: true,
-            fields: [
-               {
-                  label: 'Keluhan',
-                  inputProps: {
-                     name: 'complaint',
-                     type: 'text',
-                  },
-               },
-               {
-                  label: 'status',
-                  inputProps: {
-                     name: 'status',
-                     required: true,
-                  },
-                  isSelect: true,
-                  options: [
-                     {
-                        label: 'Sedang Antri',
-                        value: 'pending',
-                     },
-                     {
-                        label: 'Sedang Tindakan',
-                        value: 'treating',
-                     },
-                     {
-                        label: 'Selesai',
-                        value: 'done',
-                     },
-                  ],
-               },
-            ],
-         },
-      ],
-      [patients, doctors, schedules, initialValues, chosenDoctor, router],
+                             value: String(schedule?.scheduleId),
+                          })),
+                       },
+                       {
+                          label: 'Tanggal',
+                          inputProps: {
+                             name: 'appointmentDate',
+                             required: true,
+                             type: 'date',
+                          },
+                       },
+                    ],
+                 },
+                 {
+                    horizontalFieldsContainer: true,
+                    fields: [
+                       {
+                          label: 'Waktu Mulai',
+                          inputProps: {
+                             name: 'startTime',
+                             required: true,
+                             type: 'time',
+                          },
+                       },
+                       {
+                          label: 'Sampai',
+                          inputProps: {
+                             name: 'endTime',
+                             type: 'time',
+                          },
+                       },
+                    ],
+                 },
+                 {
+                    horizontalFieldsContainer: true,
+                    fields: [
+                       {
+                          label: 'Keluhan',
+                          inputProps: {
+                             name: 'complaint',
+                             type: 'text',
+                          },
+                       },
+                       {
+                          label: 'status',
+                          inputProps: {
+                             name: 'status',
+                             required: true,
+                          },
+                          isSelect: true,
+                          options: [
+                             {
+                                label: 'Sedang Antri',
+                                value: 'pending',
+                             },
+                             {
+                                label: 'Sedang Tindakan',
+                                value: 'treating',
+                             },
+                             {
+                                label: 'Pembayaran',
+                                value: 'payment',
+                             },
+                             {
+                                label: 'Selesai',
+                                value: 'done',
+                             },
+                          ],
+                       },
+                    ],
+                 },
+              ]
+            : [],
+      [formReady, schedules, chosenDoctor, doctors, patients],
    );
 
    return (
       <div className="w-fulll h-fulll flex flex-col items-center justify-center overflow-y-scroll">
-         <div className="w-full sm:w-md md:w-lg lg:w-xl xl:w-2xl 2xl:w-3xl">
-            {(params.mode !== 'detail' ||
-               (initialValues && Object.keys(initialValues).length > 0)) && (
-               <Form
-                  title="Pendaftaran Jadwal Kunjungan"
-                  description="Silahkan mengisi detail jadwal kunjungan"
-                  submitButtonCaption={
-                     params.mode === 'create' ? 'Buat' : 'Simpan'
-                  }
-                  fields={formFields}
-                  actionCallback={onSubmit}
-                  initialValues={
-                     params.mode === 'detail' ? initialValues : undefined
-                  }
-               />
+         <div className="w-full p-8">
+            <h2 className="text-lg font-bold">Informasi Kunjungan</h2>
+         </div>
+         <div className="w-full p-8">
+            {formReady && (
+               <>
+                  <Form
+                     title="Pendaftaran Jadwal Kunjungan"
+                     description="Silahkan mengisi detail jadwal kunjungan"
+                     submitButtonCaption={
+                        params.mode === 'create' ? 'Buat' : 'Simpan'
+                     }
+                     fields={formFields}
+                     actionCallback={onSubmit}
+                     initialValues={
+                        params.mode === 'detail' ? initialValues : undefined
+                     }
+                  />
+                  {params.mode === 'detail' && (
+                     <div className="w-full my-4">
+                        <Button
+                           variant={'destructive'}
+                           className=" hover:cursor-pointer"
+                           type="button"
+                           onClick={onDelete}
+                        >
+                           Hapus Kunjungan
+                           <Trash2 />
+                        </Button>
+                     </div>
+                  )}
+               </>
             )}
             <div className="w-full my-8 text-center">
                <h2 className="text-lg font-semibold my-4">
                   Jadwal Praktik Dokter
                </h2>
+               <div className="w-full flex flex-col sm:flex-row items-center justify-between gap-4 mb-4">
+                  <Input
+                     placeholder="Cari berdasarkan nama, keluhan, status..."
+                     value={search}
+                     onChange={(e) => setSearch(e.target.value)}
+                     className="max-w-sm"
+                  />
+               </div>
                <Table>
                   <TableCaption>Jadwal Praktik</TableCaption>
                   <TableHeader>
@@ -266,75 +359,75 @@ function Page() {
                   <TableBody>
                      {schedulesTable?.map((schedule: any) => (
                         <TableRow
-                           key={schedule?.doctor?.doctorId}
+                           key={schedule?.doctorId}
                            className="hover:cursor-pointer"
                         >
                            <TableCell className="text-center">
-                              {schedule?.doctor?.name}
+                              {schedule?.doctorName}
                            </TableCell>
                            <TableCell className="text-center">
                               {`${
                                  (schedule?.schedules as any[]).findLast(
-                                    (sched) => sched.dayOfWeek === 0,
+                                    (sched) => sched?.dayOfWeek === 0,
                                  )?.startTime || ''
                               } - ${
                                  (schedule?.schedules as any[]).findLast(
-                                    (sched) => sched.dayOfWeek === 0,
+                                    (sched) => sched?.dayOfWeek === 0,
                                  )?.endTime || ''
                               }`}
                            </TableCell>
                            <TableCell className="text-center">
                               {`${
                                  (schedule?.schedules as any[]).findLast(
-                                    (sched) => sched.dayOfWeek === 1,
+                                    (sched) => sched?.dayOfWeek === 1,
                                  )?.startTime || ''
                               } - ${
                                  (schedule?.schedules as any[]).findLast(
-                                    (sched) => sched.dayOfWeek === 1,
+                                    (sched) => sched?.dayOfWeek === 1,
                                  )?.endTime || ''
                               }`}
                            </TableCell>
                            <TableCell className="text-center">
                               {`${
                                  (schedule?.schedules as any[]).findLast(
-                                    (sched) => sched.dayOfWeek === 2,
+                                    (sched) => sched?.dayOfWeek === 2,
                                  )?.startTime || ''
                               } - ${
                                  (schedule?.schedules as any[]).findLast(
-                                    (sched) => sched.dayOfWeek === 2,
+                                    (sched) => sched?.dayOfWeek === 2,
                                  )?.endTime || ''
                               }`}
                            </TableCell>
                            <TableCell className="text-center">
                               {`${
                                  (schedule?.schedules as any[]).findLast(
-                                    (sched) => sched.dayOfWeek === 3,
+                                    (sched) => sched?.dayOfWeek === 3,
                                  )?.startTime || ''
                               } - ${
                                  (schedule?.schedules as any[]).findLast(
-                                    (sched) => sched.dayOfWeek === 3,
+                                    (sched) => sched?.dayOfWeek === 3,
                                  )?.endTime || ''
                               }`}
                            </TableCell>
                            <TableCell className="text-center">
                               {`${
                                  (schedule?.schedules as any[]).findLast(
-                                    (sched) => sched.dayOfWeek === 4,
+                                    (sched) => sched?.dayOfWeek === 4,
                                  )?.startTime || ''
                               } - ${
                                  (schedule?.schedules as any[]).findLast(
-                                    (sched) => sched.dayOfWeek === 4,
+                                    (sched) => sched?.dayOfWeek === 4,
                                  )?.endTime || ''
                               }`}
                            </TableCell>
                            <TableCell className="text-center">
                               {`${
                                  (schedule?.schedules as any[]).findLast(
-                                    (sched) => sched.dayOfWeek === 5,
+                                    (sched) => sched?.dayOfWeek === 5,
                                  )?.startTime || ''
                               } - ${
                                  (schedule?.schedules as any[]).findLast(
-                                    (sched) => sched.dayOfWeek === 5,
+                                    (sched) => sched?.dayOfWeek === 5,
                                  )?.endTime || ''
                               }`}
                            </TableCell>
@@ -342,6 +435,23 @@ function Page() {
                      ))}
                   </TableBody>
                </Table>
+               <div className="flex justify-between items-center mt-6">
+                  <Button
+                     variant="outline"
+                     disabled={page <= 1}
+                     onClick={() => setPage((prev) => Math.max(1, prev - 1))}
+                  >
+                     Previous
+                  </Button>
+                  <span>Page {page}</span>
+                  <Button
+                     variant="outline"
+                     disabled={!hasNextPage}
+                     onClick={() => setPage((prev) => prev + 1)}
+                  >
+                     Next
+                  </Button>
+               </div>
             </div>
          </div>
       </div>

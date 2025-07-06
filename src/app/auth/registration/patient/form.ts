@@ -119,19 +119,19 @@ export const formFields: TFormProps['fields'] = [
             options: [
                {
                   label: 'O',
-                  value: 'o',
+                  value: 'O',
                },
                {
                   label: 'A',
-                  value: 'a',
+                  value: 'A',
                },
                {
                   label: 'B',
-                  value: 'b',
+                  value: 'B',
                },
                {
                   label: 'AB',
-                  value: 'ab',
+                  value: 'AB',
                },
             ],
          },

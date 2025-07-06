@@ -1,4 +1,5 @@
 'use server';
+import { eq } from 'drizzle-orm';
 import { db } from '../db/db';
 import { doctors } from '../db/schema';
 
@@ -66,12 +67,75 @@ export async function getDoctors(payload?: FormData) {
       const doctors = await db.query.doctors.findMany({
          limit: request.limit || 10,
          offset: request.offset || 0,
+         orderBy: (doctor, { desc }) => desc(doctor?.updatedAt),
       });
 
       return {
          success: true,
          data: doctors,
          msg: 'Data fetched successfully',
+      };
+   } catch (err: any) {
+      console.error(err.toString());
+      return {
+         success: false,
+         msg: `An error occured ${err.toString()}`,
+      };
+   }
+}
+export async function getDoctorsSelection(payload?: FormData) {
+   try {
+      const request: any = {};
+      if (payload)
+         payload
+            .entries()
+            .forEach((entry) => ((request as any)[entry[0]] = entry[1]));
+
+      const doctors = await db.query.doctors.findMany({
+         limit: request.limit || 10,
+         offset: request.offset || 0,
+         with: {
+            schedules: true,
+         },
+         orderBy: (doctor, { desc }) => desc(doctor?.updatedAt),
+      });
+
+      const hasSchedules = doctors.filter(
+         (doctor) => doctor.schedules?.length > 0,
+      );
+
+      return {
+         success: true,
+         data: hasSchedules,
+         msg: 'Data fetched successfully',
+      };
+   } catch (err: any) {
+      console.error(err.toString());
+      return {
+         success: false,
+         msg: `An error occured ${err.toString()}`,
+      };
+   }
+}
+
+export async function deleteDoctor(doctorId: string) {
+   try {
+      const doctorResult = await db.query.doctors.findFirst({
+         where: (doctors, { eq }) => eq(doctors.doctorId, doctorId as any),
+      });
+
+      if (!doctorResult) {
+         return {
+            success: false,
+            msg: "Doctor doesn't exist",
+         };
+      }
+
+      await db.delete(doctors).where(eq(doctors.doctorId, doctorId as any));
+
+      return {
+         success: true,
+         msg: 'Data deleted successfully',
       };
    } catch (err: any) {
       console.error(err.toString());

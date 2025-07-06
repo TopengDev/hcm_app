@@ -7,9 +7,9 @@ export default function Layout({ children }: { children: React.ReactNode }) {
       <SidebarProvider>
          <DashboardSidebar />
          <main className="w-full">
-            <div className="w-full p-8 flex items-center justify-between sticky top-0 bg-white">
+            <div className="w-full p-8 flex items-center justify-between sticky top-0 bg-background z-10">
                <Breadcrumbs />
-               <div className="text-slate-500">
+               <div className="text-slate-300">
                   {new Date().toLocaleDateString('id', {
                      weekday: 'long',
                      day: 'numeric',

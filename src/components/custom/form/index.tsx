@@ -17,9 +17,8 @@ import {
 import { Button } from '@/components/ui/button';
 import { Label } from '@/components/ui/label';
 import { Input } from '@/components/ui/input';
-import React, { useEffect, useRef } from 'react';
+import React, { useEffect, useState } from 'react';
 import { useFormStatus } from 'react-dom';
-import { useRouter } from 'next/navigation';
 
 type TFormField = {
    label: string;
@@ -45,190 +44,156 @@ export type TFormProps = {
       | TFormField
    )[];
    actionCallback?: (props?: any) => any;
-   initialValues?: object;
+   initialValues?: Record<string, any>;
 };
 
-export default function Form(props: TFormProps) {
-   const router = useRouter();
-   const formRef = useRef<HTMLFormElement>(null);
+export default function Form({
+   title,
+   description,
+   submitButtonCaption,
+   fields,
+   actionCallback,
+   initialValues,
+}: TFormProps) {
    const { pending } = useFormStatus();
+   const [fieldValues, setFieldValues] = useState<Record<string, any>>({});
 
-   const [fieldValues, setFieldValues] = React.useState<Record<string, any>>(
-      {},
-   );
+   const [fieldOptions, setFieldOptions] = useState<any>();
 
    useEffect(() => {
-      if (formRef.current && props.initialValues) {
-         setFieldValues(props.initialValues);
-         for (const [key, value] of Object.entries(props.initialValues)) {
-            let input = formRef.current.elements.namedItem(
-               key,
-            ) as HTMLInputElement;
-            if (!input) {
-               input = document.createElement('input');
-               input.type = 'hidden';
-               input.name = key;
-               formRef.current.appendChild(input);
+      const optionsMap: any = {};
+      function traverse(fields: TFormField[]) {
+         fields.forEach((field) => {
+            if ('horizontalFieldsContainer' in field) {
+               traverse((field as any).fields);
+            } else if (field.isSelect) {
+               optionsMap[field.inputProps.name!] = [...field.options];
             }
-            input.value = value;
-         }
+         });
       }
-   }, [props.initialValues, router]);
+      traverse(fields as any);
+      setFieldOptions(optionsMap);
+   }, [JSON.stringify(fields)]);
 
-   if (
-      (props.initialValues && Object.keys(props.initialValues)?.length) ||
-      !props.initialValues
-   )
+   useEffect(() => {
+      if (initialValues && Object.keys(initialValues).length) {
+         setFieldValues((prev) => ({ ...prev, ...initialValues }));
+      }
+   }, [initialValues]);
+
+   const handleChange = (name: string, value: any) => {
+      setFieldValues((prev) => ({ ...prev, [name]: value }));
+   };
+
+   const renderField = (field: TFormField, i: number, j?: number) => {
+      const key = j !== undefined ? `form-field-${i}-${j}` : `form-field-${i}`;
+      const name = field.inputProps.name!;
+      const value = fieldValues[name] ?? '';
+
       return (
-         <Card className="w-full h-full">
-            <CardHeader>
-               {props.title && <CardTitle>{props.title}</CardTitle>}
-               {props.description && (
-                  <CardDescription>{props.description}</CardDescription>
-               )}
-            </CardHeader>
-            <CardContent>
-               <form
-                  ref={formRef}
-                  onSubmit={async (e) => {
-                     e.preventDefault();
-                     const formData = new FormData(e.currentTarget);
-                     const response = await props.actionCallback?.(formData);
-                     if (response?.success) formRef.current?.reset();
-                  }}
-               >
-                  <div className="flex flex-col gap-6">
-                     {props.fields.map((field, i) => (
-                        <div key={`form-field-${i}`}>
-                           {field.horizontalFieldsContainer ? (
-                              <div className="w-full flex items-center gap-4">
-                                 {field.fields.map((field, j) => (
-                                    <div
-                                       className="w-full flex flex-col gap-2"
-                                       key={`form-field-${i}-${j}`}
-                                    >
-                                       {field.label && (
-                                          <Label
-                                             htmlFor={
-                                                field.inputProps.name || ''
-                                             }
-                                          >
-                                             {field.label}
-                                          </Label>
-                                       )}
-                                       {field.isSelect ? (
-                                          <Select
-                                             name={field?.inputProps?.name}
-                                             value={
-                                                fieldValues[
-                                                   field.inputProps.name!
-                                                ]
-                                             }
-                                             required={
-                                                field?.inputProps?.required
-                                             }
-                                             disabled={
-                                                field?.inputProps?.disabled
-                                             }
-                                             onValueChange={(v) => {
-                                                setFieldValues({
-                                                   ...fieldValues,
-                                                   [field.inputProps.name ||
-                                                   '']: v,
-                                                });
-                                                if (field.onChoice) {
-                                                   field.onChoice(v);
-                                                }
-                                             }}
-                                          >
-                                             <SelectTrigger className="w-full">
-                                                <SelectValue
-                                                   placeholder={field.label}
-                                                />
-                                             </SelectTrigger>
-                                             <SelectContent>
-                                                {field.options.map(
-                                                   (option, k) => (
-                                                      <SelectItem
-                                                         value={option.value}
-                                                         key={`form-field-select-${i}-${j}-${k}-${option.value}-${option.label}`}
-                                                      >
-                                                         {option.label}
-                                                      </SelectItem>
-                                                   ),
-                                                )}
-                                             </SelectContent>
-                                          </Select>
-                                       ) : (
-                                          <Input {...field.inputProps} />
-                                       )}
-                                    </div>
-                                 ))}
-                              </div>
-                           ) : (
-                              <div className="w-full flex flex-col gap-2">
-                                 {field.label && (
-                                    <Label
-                                       htmlFor={field.inputProps.name || ''}
-                                    >
-                                       {field.label}
-                                    </Label>
-                                 )}
-                                 {field.isSelect ? (
-                                    <Select
-                                       name={field?.inputProps?.name}
-                                       value={
-                                          fieldValues[field.inputProps.name!]
-                                       }
-                                       required={field?.inputProps?.required}
-                                       disabled={field?.inputProps?.disabled}
-                                       onValueChange={(v) => {
-                                          setFieldValues({
-                                             ...fieldValues,
-                                             [field.inputProps.name || '']: v,
-                                          });
-                                          if (field.onChoice) {
-                                             field.onChoice(v);
-                                          }
-                                       }}
-                                    >
-                                       <SelectTrigger className="w-full">
-                                          <SelectValue
-                                             placeholder={field.label}
-                                          />
-                                       </SelectTrigger>
-                                       <SelectContent>
-                                          {field.options.map((option, k) => (
-                                             <SelectItem
-                                                value={option.value}
-                                                key={`form-field-select-${i}-${k}-${option.value}-${option.label}`}
-                                             >
-                                                {option.label}
-                                             </SelectItem>
-                                          ))}
-                                       </SelectContent>
-                                    </Select>
-                                 ) : (
-                                    <Input {...field.inputProps} />
-                                 )}
-                              </div>
-                           )}
-                        </div>
-                     ))}
-                  </div>
-                  <div className="h-8" />
-                  <Button
-                     type="submit"
-                     className="w-full hover:cursor-pointer"
-                     disabled={pending}
+         <div key={key} className="w-full flex flex-col gap-2">
+            {field.label && <Label htmlFor={name}>{field.label}</Label>}
+            {field.isSelect ? (
+               fieldOptions?.[field.inputProps?.name as any].length > 0 ? (
+                  <Select
+                     value={
+                        fieldOptions?.[field.inputProps?.name as any].some(
+                           (o: any) => o.value === value,
+                        )
+                           ? value
+                           : undefined
+                     }
+                     required={field.inputProps.required}
+                     disabled={field.inputProps.disabled}
+                     onValueChange={(v) => {
+                        handleChange(name, v);
+                        field.onChoice?.(v);
+                     }}
                   >
-                     {props.submitButtonCaption
-                        ? props.submitButtonCaption
-                        : 'Submit'}
-                  </Button>
-               </form>
-            </CardContent>
-         </Card>
+                     <SelectTrigger className="w-full">
+                        <SelectValue placeholder={field.label} />
+                     </SelectTrigger>
+                     <SelectContent className="max-h-[320px] overflow-y-scroll">
+                        {fieldOptions?.[field.inputProps?.name as any].map(
+                           (opt: any) => (
+                              <SelectItem
+                                 key={`${opt.value}`}
+                                 value={opt.value}
+                              >
+                                 {opt.label}
+                              </SelectItem>
+                           ),
+                        )}
+                     </SelectContent>
+                  </Select>
+               ) : (
+                  <Input
+                     disabled
+                     placeholder="Memuat pilihan..."
+                     className="w-full opacity-60"
+                  />
+               )
+            ) : (
+               <Input
+                  {...field.inputProps}
+                  value={value}
+                  onChange={(e) => handleChange(name, e.target.value)}
+               />
+            )}
+         </div>
       );
-   else return null;
+   };
+
+   const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
+      e.preventDefault();
+      const formData = new FormData();
+      for (const [key, value] of Object.entries(fieldValues)) {
+         formData.append(key, value);
+      }
+      const result = await actionCallback?.(formData);
+      if (result?.success) {
+         setFieldValues({});
+      }
+   };
+
+   const isReady =
+      !initialValues ||
+      (initialValues && Object.keys(initialValues).length > 0);
+
+   if (!isReady) return null;
+
+   return (
+      <Card className="w-full h-full">
+         <CardHeader>
+            {title && <CardTitle>{title}</CardTitle>}
+            {description && <CardDescription>{description}</CardDescription>}
+         </CardHeader>
+         <CardContent>
+            <form onSubmit={handleSubmit}>
+               <div className="flex flex-col gap-6">
+                  {fields.map((field, i) =>
+                     field.horizontalFieldsContainer ? (
+                        <div
+                           key={`horizontal-group-${i}`}
+                           className="w-full flex items-center gap-4"
+                        >
+                           {field.fields.map((f, j) => renderField(f, i, j))}
+                        </div>
+                     ) : (
+                        renderField(field, i)
+                     ),
+                  )}
+               </div>
+               <div className="h-8" />
+               <Button
+                  type="submit"
+                  className="w-full hover:cursor-pointer"
+                  disabled={pending}
+               >
+                  {submitButtonCaption || 'Submit'}
+               </Button>
+            </form>
+         </CardContent>
+      </Card>
+   );
 }
