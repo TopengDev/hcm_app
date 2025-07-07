@@ -11,10 +11,7 @@ import { and, desc, eq, ilike, or } from 'drizzle-orm';
 
 export async function createMedicalRecord(payload: FormData) {
    try {
-      const newMedicalRecord: any = {};
-      payload
-         .entries()
-         .forEach((entry) => ((newMedicalRecord as any)[entry[0]] = entry[1]));
+      const newMedicalRecord: any = Object.fromEntries(payload.entries());
 
       const appointmentId = newMedicalRecord?.appointmentId;
       const appointmentStatus = newMedicalRecord?.statusKunjungan || 'pending';
@@ -49,12 +46,7 @@ export async function createMedicalRecord(payload: FormData) {
 
 export async function updateMedicalRecord(payload: FormData) {
    try {
-      const updatedMedicalRecord: any = {};
-      payload
-         .entries()
-         .forEach(
-            (entry) => ((updatedMedicalRecord as any)[entry[0]] = entry[1]),
-         );
+      const updatedMedicalRecord: any = Object.fromEntries(payload.entries());
 
       delete updatedMedicalRecord.complaint;
 

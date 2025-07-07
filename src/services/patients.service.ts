@@ -5,10 +5,7 @@ import { desc, eq, ilike, or } from 'drizzle-orm';
 
 export async function registerPatient(payload: FormData) {
    try {
-      const newPatient: any = {};
-      payload
-         .entries()
-         .forEach((entry) => ((newPatient as any)[entry[0]] = entry[1]));
+      const newPatient: any = Object.fromEntries(payload.entries());
 
       const existingPatientByEmail = await db.query.patients.findFirst({
          where: (patients, { eq }) => eq(patients.email, newPatient.email),
@@ -58,10 +55,7 @@ export async function registerPatient(payload: FormData) {
 
 export async function updatePatient(payload: FormData) {
    try {
-      let updatedPatient: any = {};
-      payload
-         .entries()
-         .forEach((entry) => ((updatedPatient as any)[entry[0]] = entry[1]));
+      let updatedPatient: any = Object.fromEntries(payload.entries());
 
       updatedPatient.patientId = parseInt(updatedPatient.patientId);
 
@@ -146,11 +140,8 @@ export async function deletePatient(patientId: string) {
 }
 export async function getPatients(payload?: FormData) {
    try {
-      const request: any = {};
-      if (payload)
-         payload
-            .entries()
-            .forEach((entry) => ((request as any)[entry[0]] = entry[1]));
+      let request: any = {};
+      if (payload) request = Object.fromEntries(payload.entries());
 
       const limit = Number(request.limit || 10);
       const offset = Number(request.offset || 0);

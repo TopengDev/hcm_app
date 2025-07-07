@@ -8,10 +8,7 @@ import * as schema from '../db/schema';
 
 export async function createAppointments(payload: FormData) {
    try {
-      const newAppoointment: any = {};
-      payload
-         .entries()
-         .forEach((entry) => ((newAppoointment as any)[entry[0]] = entry[1]));
+      const newAppoointment: any = Object.fromEntries(payload.entries());
 
       const patient = await db.query.patients.findFirst({
          where: (patients, { eq }) =>
@@ -62,10 +59,7 @@ export async function createAppointments(payload: FormData) {
 
 export async function updateAppointments(payload: FormData) {
    try {
-      const updateData: any = {};
-      payload
-         .entries()
-         .forEach((entry) => ((updateData as any)[entry[0]] = entry[1]));
+      const updateData: any = Object.fromEntries(payload.entries());
 
       if (!updateData.appointmentId) {
          return {
@@ -194,11 +188,9 @@ export async function getPatientAppointments(patientId: string) {
 }
 export async function getAllAppointments(payload?: FormData) {
    try {
-      const request: any = {};
+      let request: any;
       if (payload) {
-         payload.entries().forEach((entry) => {
-            request[entry[0]] = entry[1];
-         });
+         request = Object.fromEntries(payload.entries());
       }
 
       const limit = Number(request.limit || 10);

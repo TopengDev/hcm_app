@@ -9,10 +9,7 @@ export async function signIn(payload: FormData) {
    const cookieStore = await cookies();
 
    try {
-      const authPayload: any = {};
-      payload
-         .entries()
-         .forEach((entry) => ((authPayload as any)[entry[0]] = entry[1]));
+      const authPayload: any = Object.fromEntries(payload.entries());
 
       let userResult: any;
 

@@ -5,10 +5,7 @@ import { nurses } from '../db/schema';
 
 export async function registerNurse(payload: FormData) {
    try {
-      const newNurse: any = {};
-      payload
-         .entries()
-         .forEach((entry) => ((newNurse as any)[entry[0]] = entry[1]));
+      const newNurse: any = Object.fromEntries(payload.entries());
 
       const existingNurseByEmail = await db.query.nurses.findFirst({
          where: (nurses, { eq }) => eq(nurses.email, newNurse.email),

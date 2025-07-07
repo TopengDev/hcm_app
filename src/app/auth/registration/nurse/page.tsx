@@ -12,8 +12,10 @@ function Page() {
 
    async function onSubmit(formData: FormData) {
       try {
-         const response = await registerNurse(formData);
+         console.log({ formData });
 
+         const response = await registerNurse(formData);
+         console.log({ response });
          if (!response.success) {
             toast.info(response.msg);
          } else {

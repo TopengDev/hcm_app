@@ -5,10 +5,7 @@ import { doctors } from '../db/schema';
 
 export async function registerDoctor(payload: FormData) {
    try {
-      const newDoctor: any = {};
-      payload
-         .entries()
-         .forEach((entry) => ((newDoctor as any)[entry[0]] = entry[1]));
+      const newDoctor: any = Object.fromEntries(payload.entries());
 
       const existingDoctorByEmail = await db.query.doctors.findFirst({
          where: (doctors, { eq }) => eq(doctors.email, newDoctor.email),
@@ -58,10 +55,7 @@ export async function registerDoctor(payload: FormData) {
 
 export async function updateDoctor(payload: FormData) {
    try {
-      let updatedDoctor: any = {};
-      payload
-         .entries()
-         .forEach((entry) => ((updatedDoctor as any)[entry[0]] = entry[1]));
+      let updatedDoctor: any = Object.fromEntries(payload.entries());
 
       updatedDoctor.doctorId = parseInt(updatedDoctor.doctorId);
 
@@ -133,11 +127,8 @@ export async function updateDoctor(payload: FormData) {
 
 export async function getDoctors(payload?: FormData) {
    try {
-      const request: any = {};
-      if (payload)
-         payload
-            .entries()
-            .forEach((entry) => ((request as any)[entry[0]] = entry[1]));
+      let request: any;
+      if (payload) request = Object.fromEntries(payload.entries());
 
       const doctors = await db.query.doctors.findMany({
          limit: request.limit || 10,
@@ -160,11 +151,8 @@ export async function getDoctors(payload?: FormData) {
 }
 export async function getDoctorsSelection(payload?: FormData) {
    try {
-      const request: any = {};
-      if (payload)
-         payload
-            .entries()
-            .forEach((entry) => ((request as any)[entry[0]] = entry[1]));
+      let request: any;
+      if (payload) request = Object.fromEntries(payload.entries());
 
       const doctors = await db.query.doctors.findMany({
          limit: request.limit || 10,

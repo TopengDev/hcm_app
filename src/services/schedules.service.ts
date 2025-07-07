@@ -6,10 +6,7 @@ import { asc, desc, eq, ilike, or, sql } from 'drizzle-orm';
 
 export async function createSchedule(payload: FormData) {
    try {
-      const newSchedule: any = {};
-      payload
-         .entries()
-         .forEach((entry) => ((newSchedule as any)[entry[0]] = entry[1]));
+      const newSchedule: any = Object.fromEntries(payload.entries());
 
       const result = (
          await db.insert(schedules).values(newSchedule).returning()
@@ -31,10 +28,7 @@ export async function createSchedule(payload: FormData) {
 
 export async function updateSchedule(payload: FormData) {
    try {
-      const updatedSchedule: any = {};
-      payload
-         .entries()
-         .forEach((entry) => ((updatedSchedule as any)[entry[0]] = entry[1]));
+      const updatedSchedule: any = Object.fromEntries(payload.entries());
 
       if (!updatedSchedule.scheduleId) {
          return {
@@ -113,11 +107,9 @@ export async function deleteSchedule(scheduleId: string) {
 
 export async function getAllSchedules(payload?: FormData) {
    try {
-      const request: any = {};
+      let request: any = {};
       if (payload) {
-         for (const [key, value] of payload.entries()) {
-            request[key] = value;
-         }
+         request = Object.fromEntries(payload.entries());
       }
 
       const limit = Number(request.limit || 10);
