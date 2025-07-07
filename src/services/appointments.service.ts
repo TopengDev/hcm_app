@@ -2,7 +2,7 @@
 
 import { db } from '@/db/db';
 import { appointments, patients } from '@/db/schema';
-import { desc, eq, ilike, or, sql } from 'drizzle-orm';
+import { and, desc, eq, ilike, or, sql, asc } from 'drizzle-orm';
 import { seed } from 'drizzle-seed';
 import * as schema from '../db/schema';
 
@@ -176,7 +176,7 @@ export async function getPatientAppointments(patientId: string) {
             schedule: true,
             medicalRecords: true,
          },
-         orderBy: (appointment, { desc }) => desc(appointment.updatedAt),
+         orderBy: (appointment, { asc }) => asc(appointment.updatedAt),
       });
 
       return {
@@ -204,17 +204,23 @@ export async function getAllAppointments(payload?: FormData) {
       const limit = Number(request.limit || 10);
       const offset = Number(request.offset || 0);
       const search = (request.search || '').toLowerCase();
+      const status = request?.status;
 
       const a = appointments;
       const p = patients;
 
-      const whereClause = search
-         ? or(
-              ilike(a.status, `%${search}%`),
-              ilike(a.complaint, `%${search}%`),
-              ilike(p.name, `%${search}%`),
-           )
-         : undefined;
+      const whereClause = and(
+         or(ilike(a.complaint, `%${search}%`), ilike(p.name, `%${search}%`)),
+         status
+            ? status?.includes('|')
+               ? or(
+                    ...status
+                       ?.split('|')
+                       ?.map((status: string) => eq(a.status, status)),
+                 )
+               : eq(a.status, status)
+            : undefined,
+      );
 
       const results = await db
          .select()
@@ -223,7 +229,8 @@ export async function getAllAppointments(payload?: FormData) {
          .where(whereClause)
          .limit(limit)
          .offset(offset)
-         .orderBy(desc(a.updatedAt));
+         .orderBy(asc(a.createdAt));
+
       return {
          success: true,
          data: results?.map((resultData) => ({

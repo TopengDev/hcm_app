@@ -25,10 +25,10 @@ export const formFields: TFormProps['fields'] = [
       },
       isSelect: true,
       options: [
-         // {
-         //    label: 'Patient',
-         //    value: 'patient',
-         // },
+         {
+            label: 'Patient',
+            value: 'patient',
+         },
          {
             label: 'Nurse',
             value: 'nurse',

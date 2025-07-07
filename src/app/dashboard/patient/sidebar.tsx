@@ -20,22 +20,17 @@ import { signOut } from '@/services/auth.service';
 const items = [
    {
       title: 'Kunjungan',
-      url: '/dashboard/nurse/appointment',
+      url: '/dashboard/patient/appointment',
       icon: BookCheckIcon,
    },
    {
-      title: 'Pasien',
-      url: '/dashboard/nurse/patient',
-      icon: Bed,
-   },
-   {
       title: 'Jadwal',
-      url: '/dashboard/nurse/schedule',
+      url: '/dashboard/patient/schedule',
       icon: Calendar,
    },
    {
       title: 'Histori Medis',
-      url: '/dashboard/nurse/medicalRecords',
+      url: '/dashboard/patient/medicalRecords',
       icon: History,
    },
 ];

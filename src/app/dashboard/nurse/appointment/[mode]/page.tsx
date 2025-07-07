@@ -111,6 +111,7 @@ function Page() {
       payload.append('search', search);
       const response = (await getAllSchedules(payload))?.data || [];
       const result = response || [];
+      setHasNextPage(result.length === limit);
       setSchedulesTable(result);
    }
    const [formReady, setFormReady] = useState(false);
@@ -166,6 +167,10 @@ function Page() {
    }, []);
 
    const [chosenDoctor, setChosenDoctor] = useState<any>();
+   useEffect(() => {
+      if (chosenDoctor) fetchSchedulesSelection(chosenDoctor);
+      else setSchedules([]);
+   }, [chosenDoctor]);
 
    const formFields: TFormProps['fields'] = useMemo(
       () =>
@@ -179,6 +184,7 @@ function Page() {
                           inputProps: {
                              name: 'patientId',
                              required: true,
+                             disabled: params.mode === 'detail',
                           },
                           isSelect: true,
                           options: patients.map((patient) => ({
@@ -191,6 +197,7 @@ function Page() {
                           inputProps: {
                              name: 'doctorId',
                              required: true,
+                             disabled: params.mode === 'detail',
                           },
                           isSelect: true,
                           options: doctors.map((doctor) => ({
@@ -209,7 +216,8 @@ function Page() {
                           inputProps: {
                              name: 'scheduleId',
                              required: true,
-                             disabled: !chosenDoctor,
+                             disabled:
+                                !chosenDoctor || params.mode === 'detail',
                           },
                           isSelect: true,
                           options: (schedules || []).map((schedule) => ({
@@ -224,6 +232,7 @@ function Page() {
                              name: 'appointmentDate',
                              required: true,
                              type: 'date',
+                             disabled: params.mode === 'detail',
                           },
                        },
                     ],
@@ -237,6 +246,7 @@ function Page() {
                              name: 'startTime',
                              required: true,
                              type: 'time',
+                             disabled: params.mode === 'detail',
                           },
                        },
                        {
@@ -244,6 +254,7 @@ function Page() {
                           inputProps: {
                              name: 'endTime',
                              type: 'time',
+                             disabled: params.mode === 'detail',
                           },
                        },
                     ],
@@ -256,6 +267,7 @@ function Page() {
                           inputProps: {
                              name: 'complaint',
                              type: 'text',
+                             disabled: params.mode === 'detail',
                           },
                        },
                        {
@@ -326,130 +338,132 @@ function Page() {
                   )}
                </>
             )}
-            <div className="w-full my-8 text-center">
-               <h2 className="text-lg font-semibold my-4">
-                  Jadwal Praktik Dokter
-               </h2>
-               <div className="w-full flex flex-col sm:flex-row items-center justify-between gap-4 mb-4">
-                  <Input
-                     placeholder="Cari berdasarkan nama, keluhan, status..."
-                     value={search}
-                     onChange={(e) => setSearch(e.target.value)}
-                     className="max-w-sm"
-                  />
-               </div>
-               <Table>
-                  <TableCaption>Jadwal Praktik</TableCaption>
-                  <TableHeader>
-                     <TableRow>
-                        <TableHead className="text-center">
-                           Nama Dokter
-                        </TableHead>
-                        <TableHead className="text-center">Senin</TableHead>
-                        <TableHead className="text-center">Selasa</TableHead>
-                        <TableHead className="text-center">Rabu</TableHead>
-                        <TableHead className="text-center">Kamis</TableHead>
-                        <TableHead className="text-center">Jumat</TableHead>
-                        <TableHead className="text-center">Sabtu</TableHead>
-                     </TableRow>
-                  </TableHeader>
-                  <TableBody>
-                     {schedulesTable?.map((schedule: any) => (
-                        <TableRow
-                           key={schedule?.doctorId}
-                           className="hover:cursor-pointer"
-                        >
-                           <TableCell className="text-center">
-                              {schedule?.doctorName}
-                           </TableCell>
-                           <TableCell className="text-center">
-                              {`${
-                                 (schedule?.schedules as any[]).findLast(
-                                    (sched) => sched?.dayOfWeek === 0,
-                                 )?.startTime || ''
-                              } - ${
-                                 (schedule?.schedules as any[]).findLast(
-                                    (sched) => sched?.dayOfWeek === 0,
-                                 )?.endTime || ''
-                              }`}
-                           </TableCell>
-                           <TableCell className="text-center">
-                              {`${
-                                 (schedule?.schedules as any[]).findLast(
-                                    (sched) => sched?.dayOfWeek === 1,
-                                 )?.startTime || ''
-                              } - ${
-                                 (schedule?.schedules as any[]).findLast(
-                                    (sched) => sched?.dayOfWeek === 1,
-                                 )?.endTime || ''
-                              }`}
-                           </TableCell>
-                           <TableCell className="text-center">
-                              {`${
-                                 (schedule?.schedules as any[]).findLast(
-                                    (sched) => sched?.dayOfWeek === 2,
-                                 )?.startTime || ''
-                              } - ${
-                                 (schedule?.schedules as any[]).findLast(
-                                    (sched) => sched?.dayOfWeek === 2,
-                                 )?.endTime || ''
-                              }`}
-                           </TableCell>
-                           <TableCell className="text-center">
-                              {`${
-                                 (schedule?.schedules as any[]).findLast(
-                                    (sched) => sched?.dayOfWeek === 3,
-                                 )?.startTime || ''
-                              } - ${
-                                 (schedule?.schedules as any[]).findLast(
-                                    (sched) => sched?.dayOfWeek === 3,
-                                 )?.endTime || ''
-                              }`}
-                           </TableCell>
-                           <TableCell className="text-center">
-                              {`${
-                                 (schedule?.schedules as any[]).findLast(
-                                    (sched) => sched?.dayOfWeek === 4,
-                                 )?.startTime || ''
-                              } - ${
-                                 (schedule?.schedules as any[]).findLast(
-                                    (sched) => sched?.dayOfWeek === 4,
-                                 )?.endTime || ''
-                              }`}
-                           </TableCell>
-                           <TableCell className="text-center">
-                              {`${
-                                 (schedule?.schedules as any[]).findLast(
-                                    (sched) => sched?.dayOfWeek === 5,
-                                 )?.startTime || ''
-                              } - ${
-                                 (schedule?.schedules as any[]).findLast(
-                                    (sched) => sched?.dayOfWeek === 5,
-                                 )?.endTime || ''
-                              }`}
-                           </TableCell>
+            {params.mode === 'create' && (
+               <div className="w-full my-8 text-center">
+                  <h2 className="text-lg font-semibold my-4">
+                     Jadwal Praktik Dokter
+                  </h2>
+                  <div className="w-full flex flex-col sm:flex-row items-center justify-between gap-4 mb-4">
+                     <Input
+                        placeholder="Cari berdasarkan nama, keluhan, status..."
+                        value={search}
+                        onChange={(e) => setSearch(e.target.value)}
+                        className="max-w-sm"
+                     />
+                  </div>
+                  <Table>
+                     <TableCaption>Jadwal Praktik</TableCaption>
+                     <TableHeader>
+                        <TableRow>
+                           <TableHead className="text-center">
+                              Nama Dokter
+                           </TableHead>
+                           <TableHead className="text-center">Senin</TableHead>
+                           <TableHead className="text-center">Selasa</TableHead>
+                           <TableHead className="text-center">Rabu</TableHead>
+                           <TableHead className="text-center">Kamis</TableHead>
+                           <TableHead className="text-center">Jumat</TableHead>
+                           <TableHead className="text-center">Sabtu</TableHead>
                         </TableRow>
-                     ))}
-                  </TableBody>
-               </Table>
-               <div className="flex justify-between items-center mt-6">
-                  <Button
-                     variant="outline"
-                     disabled={page <= 1}
-                     onClick={() => setPage((prev) => Math.max(1, prev - 1))}
-                  >
-                     Previous
-                  </Button>
-                  <span>Page {page}</span>
-                  <Button
-                     variant="outline"
-                     disabled={!hasNextPage}
-                     onClick={() => setPage((prev) => prev + 1)}
-                  >
-                     Next
-                  </Button>
+                     </TableHeader>
+                     <TableBody>
+                        {schedulesTable?.map((schedule: any) => (
+                           <TableRow
+                              key={schedule?.doctorId}
+                              className="hover:cursor-pointer"
+                           >
+                              <TableCell className="text-center">
+                                 {schedule?.doctorName}
+                              </TableCell>
+                              <TableCell className="text-center">
+                                 {`${
+                                    (schedule?.schedules as any[]).findLast(
+                                       (sched) => sched?.dayOfWeek === 0,
+                                    )?.startTime || ''
+                                 } - ${
+                                    (schedule?.schedules as any[]).findLast(
+                                       (sched) => sched?.dayOfWeek === 0,
+                                    )?.endTime || ''
+                                 }`}
+                              </TableCell>
+                              <TableCell className="text-center">
+                                 {`${
+                                    (schedule?.schedules as any[]).findLast(
+                                       (sched) => sched?.dayOfWeek === 1,
+                                    )?.startTime || ''
+                                 } - ${
+                                    (schedule?.schedules as any[]).findLast(
+                                       (sched) => sched?.dayOfWeek === 1,
+                                    )?.endTime || ''
+                                 }`}
+                              </TableCell>
+                              <TableCell className="text-center">
+                                 {`${
+                                    (schedule?.schedules as any[]).findLast(
+                                       (sched) => sched?.dayOfWeek === 2,
+                                    )?.startTime || ''
+                                 } - ${
+                                    (schedule?.schedules as any[]).findLast(
+                                       (sched) => sched?.dayOfWeek === 2,
+                                    )?.endTime || ''
+                                 }`}
+                              </TableCell>
+                              <TableCell className="text-center">
+                                 {`${
+                                    (schedule?.schedules as any[]).findLast(
+                                       (sched) => sched?.dayOfWeek === 3,
+                                    )?.startTime || ''
+                                 } - ${
+                                    (schedule?.schedules as any[]).findLast(
+                                       (sched) => sched?.dayOfWeek === 3,
+                                    )?.endTime || ''
+                                 }`}
+                              </TableCell>
+                              <TableCell className="text-center">
+                                 {`${
+                                    (schedule?.schedules as any[]).findLast(
+                                       (sched) => sched?.dayOfWeek === 4,
+                                    )?.startTime || ''
+                                 } - ${
+                                    (schedule?.schedules as any[]).findLast(
+                                       (sched) => sched?.dayOfWeek === 4,
+                                    )?.endTime || ''
+                                 }`}
+                              </TableCell>
+                              <TableCell className="text-center">
+                                 {`${
+                                    (schedule?.schedules as any[]).findLast(
+                                       (sched) => sched?.dayOfWeek === 5,
+                                    )?.startTime || ''
+                                 } - ${
+                                    (schedule?.schedules as any[]).findLast(
+                                       (sched) => sched?.dayOfWeek === 5,
+                                    )?.endTime || ''
+                                 }`}
+                              </TableCell>
+                           </TableRow>
+                        ))}
+                     </TableBody>
+                  </Table>
+                  <div className="flex justify-between items-center mt-6">
+                     <Button
+                        variant="outline"
+                        disabled={page <= 1}
+                        onClick={() => setPage((prev) => Math.max(1, prev - 1))}
+                     >
+                        Previous
+                     </Button>
+                     <span>Page {page}</span>
+                     <Button
+                        variant="outline"
+                        disabled={!hasNextPage}
+                        onClick={() => setPage((prev) => prev + 1)}
+                     >
+                        Next
+                     </Button>
+                  </div>
                </div>
-            </div>
+            )}
          </div>
       </div>
    );

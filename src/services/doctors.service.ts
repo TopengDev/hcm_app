@@ -111,8 +111,6 @@ export async function updateDoctor(payload: FormData) {
          isAvailable: true,
       };
 
-      console.log({ updatedDoctor });
-
       const result = await db
          .update(doctors)
          .set(updatedDoctor)

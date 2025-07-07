@@ -43,6 +43,7 @@ function Page() {
       payload.append('limit', String(limit));
       payload.append('offset', String((page - 1) * limit));
       payload.append('search', search);
+      payload.append('status', 'pending|treating');
 
       const result = (await getAllAppointments(payload))?.data || [];
 
@@ -113,6 +114,8 @@ function Page() {
                      <TableRow>
                         <TableHead className="text-center">No</TableHead>
                         <TableHead className="text-center">Pasien</TableHead>
+                        <TableHead className="text-center">Tanggal</TableHead>
+                        <TableHead className="text-center">Jam</TableHead>
                         <TableHead className="text-center">Keluhan</TableHead>
                         <TableHead className="text-center">
                            Status Kunjungan
@@ -137,11 +140,34 @@ function Page() {
                               {appointment?.patient?.name || ''}
                            </TableCell>
                            <TableCell className="text-center">
+                              {appointment?.appointmentDate || ''}
+                           </TableCell>
+                           <TableCell className="text-center">
+                              {`${appointment?.startTime || ''} - ${
+                                 appointment?.endTime || ''
+                              }`}
+                           </TableCell>
+                           <TableCell className="text-center">
                               {appointment?.complaint || ''}
                            </TableCell>
                            <TableCell className="text-center">
                               {appointment?.status || ''}
                            </TableCell>
+                           {i === 0 && page === 1 && !search && (
+                              <TableCell className="text-center">
+                                 <Button
+                                    className="hover:cursor-pointer"
+                                    onClick={(e) => {
+                                       e.stopPropagation();
+                                       router.push(
+                                          `/dashboard/doctor/appointment/treat?id=${appointment.appointmentId}`,
+                                       );
+                                    }}
+                                 >
+                                    Periksa
+                                 </Button>
+                              </TableCell>
+                           )}
                         </TableRow>
                      ))}
                   </TableBody>

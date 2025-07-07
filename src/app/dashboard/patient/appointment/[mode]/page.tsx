@@ -28,6 +28,7 @@ import { Trash2 } from 'lucide-react';
 import { useDebounce } from '@/hooks/useDebounce';
 import { Input } from '@/components/ui/input';
 import Link from 'next/link';
+import { useGlobalContext } from '@/app/globalProvider';
 
 function Page() {
    const router = useRouter();
@@ -35,6 +36,7 @@ function Page() {
    const searchParams = useSearchParams();
 
    const [initialValues, setInitialValues] = useState<any>({});
+   const { states } = useGlobalContext();
 
    async function onSubmit(formData: FormData) {
       try {
@@ -46,7 +48,7 @@ function Page() {
                if (!response?.success) {
                   toast.info(response?.msg);
                } else {
-                  router.push('/dashboard/doctor/appointment');
+                  router.push('/dashboard/patient/appointment');
                }
 
                return response;
@@ -55,7 +57,7 @@ function Page() {
                if (!response?.success) {
                   toast.info(response?.msg);
                } else {
-                  router.push('/dashboard/doctor/appointment');
+                  router.push('/dashboard/patient/appointment');
                }
 
                return response;
@@ -72,7 +74,7 @@ function Page() {
          if (!response?.success) {
             toast.info(response?.msg);
          } else {
-            router.push('/dashboard/doctor/appointment');
+            router.push('/dashboard/patient/appointment');
          }
       } catch (error: any) {
          toast.error(error.toString());
@@ -156,6 +158,11 @@ function Page() {
 
                await fetchSchedulesSelection(doctorId);
             }
+         } else {
+            setInitialValues({
+               patientId: String(states?.user?.patientId),
+               status: 'pending',
+            });
          }
 
          await fetchSchedulesTable();
@@ -163,8 +170,8 @@ function Page() {
          setFormReady(true);
       }
 
-      init();
-   }, []);
+      if (states?.user) init();
+   }, [states?.user]);
 
    const [chosenDoctor, setChosenDoctor] = useState<any>();
    useEffect(() => {
@@ -174,7 +181,7 @@ function Page() {
 
    const formFields: TFormProps['fields'] = useMemo(
       () =>
-         formReady
+         formReady && states?.user
             ? [
                  {
                     horizontalFieldsContainer: true,
@@ -184,7 +191,7 @@ function Page() {
                           inputProps: {
                              name: 'patientId',
                              required: true,
-                             disabled: params.mode === 'detail',
+                             disabled: true,
                           },
                           isSelect: true,
                           options: patients.map((patient) => ({
@@ -283,25 +290,13 @@ function Page() {
                                 label: 'Sedang Antri',
                                 value: 'pending',
                              },
-                             {
-                                label: 'Sedang Tindakan',
-                                value: 'treating',
-                             },
-                             {
-                                label: 'Pembayaran',
-                                value: 'payment',
-                             },
-                             {
-                                label: 'Selesai',
-                                value: 'done',
-                             },
                           ],
                        },
                     ],
                  },
               ]
             : [],
-      [formReady, schedules, chosenDoctor, doctors, patients],
+      [formReady, schedules, chosenDoctor, doctors, patients, states?.user],
    );
 
    return (
@@ -310,34 +305,32 @@ function Page() {
             <h2 className="text-lg font-bold">Informasi Kunjungan</h2>
          </div>
          <div className="w-full p-8">
-            {formReady && (
+            {formReady && !!states?.user && (
                <>
                   <Form
                      title="Pendaftaran Jadwal Kunjungan"
                      description="Silahkan mengisi detail jadwal kunjungan"
-                     submitButtonCaption={
-                        params.mode === 'create' ? 'Buat' : 'Simpan'
-                     }
+                     submitButtonCaption={'Buat Kunjungan'}
                      fields={formFields}
                      actionCallback={onSubmit}
-                     initialValues={
-                        params.mode === 'detail' ? initialValues : undefined
-                     }
-                     enableSubmitButton={false}
+                     initialValues={initialValues}
+                     enableSubmitButton={params.mode === 'create'}
                   />
-                  {/* {params.mode === 'detail' && (
-                     <div className="w-full my-4">
-                        <Button
-                           variant={'destructive'}
-                           className=" hover:cursor-pointer"
-                           type="button"
-                           onClick={onDelete}
-                        >
-                           Hapus Kunjungan
-                           <Trash2 />
-                        </Button>
-                     </div>
-                  )} */}
+                  {params.mode === 'detail' &&
+                     String(states?.user?.patientId) ===
+                        initialValues?.patientId && (
+                        <div className="w-full my-4">
+                           <Button
+                              variant={'destructive'}
+                              className=" hover:cursor-pointer"
+                              type="button"
+                              onClick={onDelete}
+                           >
+                              Hapus Kunjungan
+                              <Trash2 />
+                           </Button>
+                        </div>
+                     )}
                </>
             )}
             {params.mode === 'create' && (

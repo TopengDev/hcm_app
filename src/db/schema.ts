@@ -134,6 +134,8 @@ export const medicalRecords = pgTable(
    {
       recordId: serial('record_id').notNull().primaryKey(),
       appointmentId: integer('appointment_id').notNull(),
+      patientId: integer('patient_id'),
+      doctorId: integer('doctor_id'),
       nurseId: integer('nurse_id'),
       symptoms: text(),
       diagnosis: text(),
@@ -156,6 +158,16 @@ export const medicalRecords = pgTable(
          columns: [table.nurseId],
          foreignColumns: [nurses.nurseId],
          name: 'medical_records_nurse_id_fkey',
+      }),
+      foreignKey({
+         columns: [table.patientId],
+         foreignColumns: [patients.patientId],
+         name: 'medical_records_patient_id_fkey',
+      }),
+      foreignKey({
+         columns: [table.doctorId],
+         foreignColumns: [doctors.doctorId],
+         name: 'medical_records_doctor_id_fkey',
       }),
    ],
 );
@@ -226,6 +238,14 @@ export const medicalRecordsRelations = relations(
       nurse: one(nurses, {
          fields: [medicalRecords.nurseId],
          references: [nurses.nurseId],
+      }),
+      patient: one(patients, {
+         fields: [medicalRecords.patientId],
+         references: [patients.patientId],
+      }),
+      doctor: one(doctors, {
+         fields: [medicalRecords.doctorId],
+         references: [doctors.doctorId],
       }),
       recipes: many(recipes),
    }),
