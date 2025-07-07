@@ -198,9 +198,6 @@ function Page() {
    }, [chosenDoctor]);
 
    const [chosenScheduleDay, setChosenScheduleDay] = useState<number>();
-   useEffect(() => {
-      console.log({ chosenScheduleDay });
-   }, [chosenScheduleDay]);
    const formFields: TFormProps['fields'] = useMemo(
       () =>
          formReady && states?.user

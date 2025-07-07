@@ -39,14 +39,16 @@ function Page() {
    }
 
    useEffect(() => {
-      fetchMedicalRecords();
-   }, [page]);
+      if (states?.user?.patientId) fetchMedicalRecords();
+   }, [page, states?.user?.patientId]);
 
    const debouncedSearch = useDebounce(search, 500);
    useEffect(() => {
-      setPage(1);
-      fetchMedicalRecords();
-   }, [debouncedSearch]);
+      if (states?.user?.patientId) {
+         setPage(1);
+         fetchMedicalRecords();
+      }
+   }, [debouncedSearch, states?.user?.patientId]);
 
    return (
       <div className="w-full h-full flex flex-col items-center justify-center">

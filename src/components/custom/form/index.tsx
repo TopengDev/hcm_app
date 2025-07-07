@@ -112,7 +112,7 @@ export default function Form({
                            (o: any) => o.value === value,
                         )
                            ? value
-                           : undefined
+                           : 'select'
                      }
                      required={field.inputProps.required}
                      disabled={field.inputProps.disabled}
