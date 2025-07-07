@@ -99,11 +99,11 @@ function Page() {
                   onChange={(e) => setSearch(e.target.value)}
                   className="max-w-sm"
                />
-               <Link href={`/dashboard/doctor/appointment/create`}>
+               {/* <Link href={`/dashboard/doctor/appointment/create`}>
                   <Button className="hover:cursor-pointer">
                      Buat Kunjungan
                   </Button>
-               </Link>
+               </Link> */}
             </div>
             <div className="w-full text-center">
                <h2 className="text-lg font-semibold my-4">List Kunjungan</h2>
