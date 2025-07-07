@@ -299,3 +299,98 @@ export async function getAppointmentTotals() {
       };
    }
 }
+
+export async function validateAppointmentTime(
+   doctorId: string,
+   scheduleId: string,
+   startTime: string,
+   endTime: string,
+   date: string,
+) {
+   function toDateTime(time: string) {
+      return new Date(`${date}T${time}`);
+   }
+
+   try {
+      const doctorAppointments = await db.query.appointments.findMany({
+         where: (appointment, { eq, and }) =>
+            and(
+               eq(appointment.doctorId, doctorId as any),
+               eq(appointment.scheduleId, scheduleId as any),
+            ),
+         with: {
+            schedule: true,
+         },
+         orderBy: (appointment, { asc }) => [asc(appointment.startTime)],
+      });
+
+      const doctorTodaySchedule = await db.query.schedules.findFirst({
+         where: (sched, { eq, and }) =>
+            and(
+               eq(sched?.doctorId, doctorId as any),
+               eq(sched?.scheduleId, scheduleId as any),
+            ),
+      });
+
+      if (!doctorTodaySchedule) {
+         return {
+            success: false,
+            msg: 'Jadwal dokter tidak ditemukan.',
+         };
+      }
+
+      const inputStart = toDateTime(startTime);
+      const inputEnd = toDateTime(endTime);
+      const scheduleStart = toDateTime(doctorTodaySchedule.startTime);
+      const scheduleEnd = toDateTime(doctorTodaySchedule.endTime);
+
+      if (inputStart >= inputEnd) {
+         return {
+            success: false,
+            msg: `Waktu mulai harus lebih awal dari waktu selesai.`,
+         };
+      }
+
+      if (inputStart < scheduleStart || inputEnd > scheduleEnd) {
+         return {
+            success: false,
+            msg: `Waktu harus dalam rentang jadwal dokter: ${doctorTodaySchedule.startTime} - ${doctorTodaySchedule.endTime}`,
+         };
+      }
+
+      const sameDayAppointments = doctorAppointments.filter((appt) => {
+         return (
+            new Date(appt.appointmentDate).toDateString() ===
+            new Date(date).toDateString()
+         );
+      });
+
+      const conflicting = sameDayAppointments.find((appt) => {
+         const apptStart = toDateTime(appt.startTime);
+         const apptEnd = toDateTime(appt.endTime as any);
+         return inputStart < apptEnd && inputEnd > apptStart;
+      });
+
+      if (conflicting) {
+         const arrangedTimes = sameDayAppointments
+            .map((appt) => `${appt.startTime} - ${appt.endTime}`)
+            .join(', ');
+
+         return {
+            success: false,
+            msg: `Waktu bertabrakan dengan janji temu lain. Jadwal yang sudah ada: ${arrangedTimes}`,
+         };
+      }
+
+      return {
+         success: true,
+         msg: 'Waktu valid dan tersedia.',
+      };
+   } catch (err: any) {
+      console.error(err.toString());
+      return {
+         success: false,
+         msg: `Terjadi kesalahan: ${err.toString()}`,
+      };
+   }
+}

@@ -22,7 +22,10 @@ import { useFormStatus } from 'react-dom';
 
 type TFormField = {
    label: string;
-   inputProps: React.ComponentProps<'input'> & { name: string };
+   inputProps: React.ComponentProps<'input'> & {
+      name: string;
+      allowedDays?: number[];
+   };
    horizontalFieldsContainer?: false;
 } & (
    | {
@@ -154,7 +157,10 @@ export default function Form({
                      <Input
                         {...field.inputProps}
                         value={value}
-                        onChange={(e) => handleChange(name, e.target.value)}
+                        onChange={(e) => {
+                           field?.inputProps?.onChange?.(e);
+                           handleChange(name, e.target.value);
+                        }}
                      />
                   )}
                </>

@@ -33,7 +33,7 @@ export default function GlobalProvider({ children }: PropsWithChildren) {
             actions: { setUser },
          }}
       >
-         <ToastContainer />
+         <ToastContainer theme="dark" />
          {children}
       </globalContext.Provider>
    );

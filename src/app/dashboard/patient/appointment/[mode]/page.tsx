@@ -13,6 +13,7 @@ import {
    deleteAppointment,
    getAppointment,
    updateAppointments,
+   validateAppointmentTime,
 } from '@/services/appointments.service';
 import {
    TableCaption,
@@ -40,27 +41,44 @@ function Page() {
 
    async function onSubmit(formData: FormData) {
       try {
-         let response;
+         const requestData: any = {};
+         formData
+            .entries()
+            .forEach((entry) => ((requestData as any)[entry[0]] = entry[1]));
 
-         switch (params.mode) {
-            case 'create':
-               response = await createAppointments(formData);
-               if (!response?.success) {
-                  toast.info(response?.msg);
-               } else {
-                  router.push('/dashboard/patient/appointment');
-               }
+         const validated = await validateAppointmentTime(
+            requestData?.doctorId,
+            requestData?.scheduleId,
+            requestData?.startTime,
+            requestData?.endTime,
+            requestData?.appointmentDate,
+         );
 
-               return response;
-            case 'detail':
-               response = await updateAppointments(formData);
-               if (!response?.success) {
-                  toast.info(response?.msg);
-               } else {
-                  router.push('/dashboard/patient/appointment');
-               }
+         if (!validated?.success) toast.info(validated?.msg);
 
-               return response;
+         if (validated?.success) {
+            let response;
+
+            switch (params.mode) {
+               case 'create':
+                  response = await createAppointments(formData);
+                  if (!response?.success) {
+                     toast.info(response?.msg);
+                  } else {
+                     router.push('/dashboard/patient/appointment');
+                  }
+
+                  return response;
+               case 'detail':
+                  response = await updateAppointments(formData);
+                  if (!response?.success) {
+                     toast.info(response?.msg);
+                  } else {
+                     router.push('/dashboard/patient/appointment');
+                  }
+
+                  return response;
+            }
          }
       } catch (error: any) {
          toast.error(error.toString());
@@ -179,6 +197,10 @@ function Page() {
       else setSchedules([]);
    }, [chosenDoctor]);
 
+   const [chosenScheduleDay, setChosenScheduleDay] = useState<number>();
+   useEffect(() => {
+      console.log({ chosenScheduleDay });
+   }, [chosenScheduleDay]);
    const formFields: TFormProps['fields'] = useMemo(
       () =>
          formReady && states?.user
@@ -232,6 +254,13 @@ function Page() {
 
                              value: String(schedule?.scheduleId),
                           })),
+                          onChoice: (v) =>
+                             setChosenScheduleDay(
+                                schedules?.find(
+                                   (sched) =>
+                                      Number(sched?.scheduleId) === Number(v),
+                                )?.dayOfWeek,
+                             ),
                        },
                        {
                           label: 'Tanggal',
@@ -239,7 +268,39 @@ function Page() {
                              name: 'appointmentDate',
                              required: true,
                              type: 'date',
-                             disabled: params.mode === 'detail',
+                             disabled:
+                                params.mode === 'detail' ||
+                                chosenScheduleDay === undefined,
+                             onChange: (e) => {
+                                if (
+                                   new Date(e.target.value).getTime() <
+                                   new Date().getTime()
+                                ) {
+                                   toast.info(
+                                      'Tanggal harus sama atau lebih dari hari ini',
+                                   );
+                                   e.target.value = '';
+                                   return;
+                                }
+                                const selected = new Date(
+                                   e.target.value,
+                                ).getDay();
+                                const allowedDay =
+                                   Number(chosenScheduleDay) >= 6
+                                      ? 0
+                                      : Number(chosenScheduleDay) + 1;
+
+                                if (allowedDay !== selected) {
+                                   toast.info(
+                                      `Pilih tanggal dengan hari ${dayOfWeekAsString(
+                                         Number(chosenScheduleDay || '0') > 6
+                                            ? 0
+                                            : Number(chosenScheduleDay || '0'),
+                                      )}`,
+                                   );
+                                   e.target.value = '';
+                                }
+                             },
                           },
                        },
                     ],
@@ -296,7 +357,15 @@ function Page() {
                  },
               ]
             : [],
-      [formReady, schedules, chosenDoctor, doctors, patients, states?.user],
+      [
+         formReady,
+         schedules,
+         chosenDoctor,
+         doctors,
+         patients,
+         states?.user,
+         chosenScheduleDay,
+      ],
    );
 
    return (
