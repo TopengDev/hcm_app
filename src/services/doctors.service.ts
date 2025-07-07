@@ -56,6 +56,83 @@ export async function registerDoctor(payload: FormData) {
    }
 }
 
+export async function updateDoctor(payload: FormData) {
+   try {
+      let updatedDoctor: any = {};
+      payload
+         .entries()
+         .forEach((entry) => ((updatedDoctor as any)[entry[0]] = entry[1]));
+
+      updatedDoctor.doctorId = parseInt(updatedDoctor.doctorId);
+
+      const existingDoctorByEmail = await db.query.doctors.findFirst({
+         where: (doctors, { eq }) => eq(doctors.email, updatedDoctor.email),
+      });
+      if (
+         existingDoctorByEmail?.doctorId &&
+         existingDoctorByEmail?.doctorId !== updatedDoctor.doctorId
+      )
+         return {
+            success: false,
+            msg: 'Email is already used',
+         };
+
+      const existingDoctorByPhoneNumber = await db.query.doctors.findFirst({
+         where: (doctors, { eq }) =>
+            eq(doctors.phoneNumber, updatedDoctor.phoneNumber),
+      });
+      if (
+         existingDoctorByPhoneNumber &&
+         existingDoctorByPhoneNumber?.doctorId !== updatedDoctor.doctorId
+      )
+         return {
+            success: false,
+            msg: 'Phone number is already used',
+         };
+
+      const existingDoctorByIdCard = await db.query.doctors.findFirst({
+         where: (doctors, { eq }) => eq(doctors.idCard, updatedDoctor.idCard),
+      });
+      if (
+         existingDoctorByIdCard &&
+         existingDoctorByIdCard?.doctorId !== updatedDoctor.doctorId
+      )
+         return {
+            success: false,
+            msg: 'Id card number is already used',
+         };
+
+      delete updatedDoctor.createdAt;
+      delete updatedDoctor.updatedAt;
+
+      updatedDoctor = {
+         ...updatedDoctor,
+         experienceYears: Number(updatedDoctor?.experienceYears) || 0,
+         isAvailable: true,
+      };
+
+      console.log({ updatedDoctor });
+
+      const result = await db
+         .update(doctors)
+         .set(updatedDoctor)
+         .where(eq(doctors.doctorId, updatedDoctor.doctorId))
+         .returning();
+
+      return {
+         success: !!result,
+         data: result,
+         msg: 'Success',
+      };
+   } catch (err: any) {
+      console.error(err.toString());
+      return {
+         success: false,
+         msg: `An error occured ${err.toString()}`,
+      };
+   }
+}
+
 export async function getDoctors(payload?: FormData) {
    try {
       const request: any = {};

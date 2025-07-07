@@ -139,6 +139,7 @@ export const medicalRecords = pgTable(
       diagnosis: text(),
       treatment: text(),
       notes: text(),
+      recipe: text(),
       paymentStatus: varchar('payment_status', { length: 20 }),
       totalFee: numeric('total_fee', { precision: 10, scale: 2 }),
       createdAt: timestamp('created_at', { mode: 'date' }).defaultNow(),

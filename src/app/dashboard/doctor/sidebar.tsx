@@ -1,4 +1,4 @@
-import { Calendar, BookCheckIcon, Bed } from 'lucide-react';
+import { Calendar, BookCheckIcon, Bed, PersonStanding } from 'lucide-react';
 
 import {
    Sidebar,
@@ -32,6 +32,11 @@ const items = [
       title: 'Jadwal',
       url: '/dashboard/doctor/schedule',
       icon: Calendar,
+   },
+   {
+      title: 'Profil',
+      url: '/dashboard/doctor/profil',
+      icon: PersonStanding,
    },
 ];
 

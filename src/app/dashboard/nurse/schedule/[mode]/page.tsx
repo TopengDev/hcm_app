@@ -193,36 +193,36 @@ function Page() {
          <div className="w-full p-8">
             <h2 className="text-lg font-bold">Informasi Jadwal</h2>
          </div>
-         {params.mode !== 'detail' ||
-            (Object.keys(initialValues)?.length > 0 && (
-               <div className="w-full  px-8">
-                  <Form
-                     title="Pendaftaran Jadwal"
-                     description="Silahkan mengisi detail jadwal praktik"
-                     submitButtonCaption={
-                        params.mode === 'detail' ? 'Simpan' : 'Buat'
-                     }
-                     fields={formFields}
-                     actionCallback={onSubmit}
-                     initialValues={
-                        params.mode === 'detail' ? initialValues : undefined
-                     }
-                  />
-                  {params.mode === 'detail' && (
-                     <div className="w-full my-4">
-                        <Button
-                           variant={'destructive'}
-                           className=" hover:cursor-pointer"
-                           type="button"
-                           onClick={onDelete}
-                        >
-                           Hapus Jadwal
-                           <Trash2 />
-                        </Button>
-                     </div>
-                  )}
-               </div>
-            ))}
+         {(params.mode !== 'detail' ||
+            Object.keys(initialValues)?.length > 0) && (
+            <div className="w-full  px-8">
+               <Form
+                  title="Pendaftaran Jadwal"
+                  description="Silahkan mengisi detail jadwal praktik"
+                  submitButtonCaption={
+                     params.mode === 'detail' ? 'Simpan' : 'Buat'
+                  }
+                  fields={formFields}
+                  actionCallback={onSubmit}
+                  initialValues={
+                     params.mode === 'detail' ? initialValues : undefined
+                  }
+               />
+               {params.mode === 'detail' && (
+                  <div className="w-full my-4">
+                     <Button
+                        variant={'destructive'}
+                        className=" hover:cursor-pointer"
+                        type="button"
+                        onClick={onDelete}
+                     >
+                        Hapus Jadwal
+                        <Trash2 />
+                     </Button>
+                  </div>
+               )}
+            </div>
+         )}
       </div>
    );
 }

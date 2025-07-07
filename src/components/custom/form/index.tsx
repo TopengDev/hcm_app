@@ -22,16 +22,21 @@ import { useFormStatus } from 'react-dom';
 
 type TFormField = {
    label: string;
-   inputProps: React.ComponentProps<'input'>;
+   inputProps: React.ComponentProps<'input'> & { name: string };
    horizontalFieldsContainer?: false;
 } & (
    | {
         isSelect?: false;
+        isTextarea?: false;
      }
    | {
-        onChoice?: (params?: any) => any;
         isSelect: true;
         options: { label: string; value: any }[];
+        onChoice?: (params?: any) => any;
+     }
+   | {
+        isTextarea: true;
+        isSelect?: false;
      }
 );
 
@@ -45,6 +50,7 @@ export type TFormProps = {
    )[];
    actionCallback?: (props?: any) => any;
    initialValues?: Record<string, any>;
+   enableSubmitButton?: boolean;
 };
 
 export default function Form({
@@ -54,6 +60,7 @@ export default function Form({
    fields,
    actionCallback,
    initialValues,
+   enableSubmitButton = true,
 }: TFormProps) {
    const { pending } = useFormStatus();
    const [fieldValues, setFieldValues] = useState<Record<string, any>>({});
@@ -93,6 +100,7 @@ export default function Form({
       return (
          <div key={key} className="w-full flex flex-col gap-2">
             {field.label && <Label htmlFor={name}>{field.label}</Label>}
+
             {field.isSelect ? (
                fieldOptions?.[field.inputProps?.name as any].length > 0 ? (
                   <Select
@@ -134,11 +142,22 @@ export default function Form({
                   />
                )
             ) : (
-               <Input
-                  {...field.inputProps}
-                  value={value}
-                  onChange={(e) => handleChange(name, e.target.value)}
-               />
+               <>
+                  {(field as any).isTextarea ? (
+                     <textarea
+                        {...(field.inputProps as any)}
+                        className="border rounded px-3 py-2 w-full min-h-[120px]"
+                        value={value}
+                        onChange={(e) => handleChange(name, e.target.value)}
+                     />
+                  ) : (
+                     <Input
+                        {...field.inputProps}
+                        value={value}
+                        onChange={(e) => handleChange(name, e.target.value)}
+                     />
+                  )}
+               </>
             )}
          </div>
       );
@@ -185,13 +204,15 @@ export default function Form({
                   )}
                </div>
                <div className="h-8" />
-               <Button
-                  type="submit"
-                  className="w-full hover:cursor-pointer"
-                  disabled={pending}
-               >
-                  {submitButtonCaption || 'Submit'}
-               </Button>
+               {enableSubmitButton && (
+                  <Button
+                     type="submit"
+                     className="w-full hover:cursor-pointer"
+                     disabled={pending}
+                  >
+                     {submitButtonCaption || 'Submit'}
+                  </Button>
+               )}
             </form>
          </CardContent>
       </Card>
