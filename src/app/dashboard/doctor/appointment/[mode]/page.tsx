@@ -214,6 +214,15 @@ function Page() {
             ],
          },
          {
+            label: 'Anemnesis',
+            inputProps: {
+               name: 'anemnesis',
+               required: true,
+               type: 'text',
+            },
+            isTextarea: true,
+         },
+         {
             label: 'Resep',
             inputProps: {
                name: 'recipe',

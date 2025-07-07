@@ -137,6 +137,7 @@ export const medicalRecords = pgTable(
       nurseId: integer('nurse_id'),
       symptoms: text(),
       diagnosis: text(),
+      anemnesis: text(),
       treatment: text(),
       notes: text(),
       recipe: text(),
