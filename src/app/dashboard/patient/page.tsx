@@ -1,7 +1,15 @@
-import React from 'react';
+'use client';
+import React, { useEffect } from 'react';
+import { useRouter } from 'next/navigation';
 
 function Page() {
-   return <div>Page</div>;
+   const router = useRouter();
+
+   useEffect(() => {
+      router.replace('/dashboard/patient/appointment');
+   }, []);
+
+   return null;
 }
 
 export default Page;
