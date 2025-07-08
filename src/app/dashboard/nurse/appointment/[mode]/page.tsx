@@ -13,6 +13,7 @@ import {
    deleteAppointment,
    getAppointment,
    updateAppointments,
+   validateAppointmentTime,
 } from '@/services/appointments.service';
 import {
    TableCaption,
@@ -45,27 +46,44 @@ function Page() {
 
    async function onSubmit(formData: FormData) {
       try {
-         let response;
+         const requestData: any = {};
+         formData
+            .entries()
+            .forEach((entry) => ((requestData as any)[entry[0]] = entry[1]));
 
-         switch (params.mode) {
-            case 'create':
-               response = await createAppointments(formData);
-               if (!response?.success) {
-                  toast.info(response?.msg);
-               } else {
-                  router.push('/dashboard/nurse/appointment');
-               }
+         const validated = await validateAppointmentTime(
+            requestData?.doctorId,
+            requestData?.scheduleId,
+            requestData?.startTime,
+            requestData?.endTime,
+            requestData?.appointmentDate,
+         );
 
-               return response;
-            case 'detail':
-               response = await updateAppointments(formData);
-               if (!response?.success) {
-                  toast.info(response?.msg);
-               } else {
-                  router.push('/dashboard/nurse/appointment');
-               }
+         if (!validated?.success) toast.info(validated?.msg);
 
-               return response;
+         if (validated?.success) {
+            let response;
+
+            switch (params.mode) {
+               case 'create':
+                  response = await createAppointments(formData);
+                  if (!response?.success) {
+                     toast.info(response?.msg);
+                  } else {
+                     router.push('/dashboard/nurse/appointment');
+                  }
+
+                  return response;
+               case 'detail':
+                  response = await updateAppointments(formData);
+                  if (!response?.success) {
+                     toast.info(response?.msg);
+                  } else {
+                     router.push('/dashboard/nurse/appointment');
+                  }
+
+                  return response;
+            }
          }
       } catch (error: any) {
          toast.error(error.toString());
