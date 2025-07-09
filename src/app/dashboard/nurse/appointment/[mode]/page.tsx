@@ -309,7 +309,9 @@ function Page() {
                              onChange: (e) => {
                                 if (
                                    new Date(e.target.value).getTime() <
-                                   new Date().getTime()
+                                      new Date().getTime() &&
+                                   new Date(e.target.value).getDay() !==
+                                      new Date().getDay()
                                 ) {
                                    toast.info(
                                       'Tanggal harus sama atau lebih dari hari ini',
