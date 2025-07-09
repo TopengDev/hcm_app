@@ -305,7 +305,9 @@ function Page() {
                              name: 'appointmentDate',
                              required: true,
                              type: 'date',
-                             disabled: params.mode === 'detail',
+                             disabled:
+                                params.mode === 'detail' ||
+                                typeof chosenScheduleDay !== 'number',
                              onChange: (e) => {
                                 if (
                                    new Date(e.target.value).getTime() <

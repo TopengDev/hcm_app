@@ -267,7 +267,7 @@ function Page() {
                              type: 'date',
                              disabled:
                                 params.mode === 'detail' ||
-                                chosenScheduleDay === undefined,
+                                typeof chosenScheduleDay !== 'number',
                              onChange: (e) => {
                                 if (
                                    new Date(e.target.value).getTime() <

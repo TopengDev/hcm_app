@@ -54,9 +54,6 @@ export async function updateMedicalRecord(payload: FormData) {
       delete updatedMedicalRecord.nurseName;
 
       if (updatedMedicalRecord?.nurseId) {
-         console.log('====================================');
-         console.log({ updatedMedicalRecord });
-         console.log('====================================');
          const nurse = await db.query.nurses.findFirst({
             where: (nurse, { eq }) =>
                eq(nurse.nurseId, updatedMedicalRecord?.nurseId),
