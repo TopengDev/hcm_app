@@ -53,14 +53,6 @@ export function DashboardSidebar() {
                   height={160}
                />
             </div>
-            <div>
-               <Image
-                  src={`/hcm_logo.png`}
-                  alt="LOGO"
-                  width={160}
-                  height={160}
-               />
-            </div>
          </SidebarHeader>
          <SidebarContent>
             <SidebarGroup>
